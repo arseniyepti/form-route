@@ -31,7 +31,7 @@ class Main extends Component {
     return (
       <Wrapper>
         <Name>{` Привет ${user}`}</Name>
-        <StyledLink onClick={this.handleLogOut} to="/form-route/login">
+        <StyledLink onClick={this.handleLogOut} to="/form-route/login/">
           Выход
         </StyledLink>
       </Wrapper>

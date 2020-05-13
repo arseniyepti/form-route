@@ -28,7 +28,7 @@ class App extends React.Component {
           <Route
             history={history}
             exact
-            path="/form-route/login"
+            path="/form-route/login/"
             isLogged={isLogged}
             component={Authorization}
           />

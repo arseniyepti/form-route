@@ -26,12 +26,12 @@ class Main extends Component {
   render() {
     const { isLogged, user } = this.props;
     if (isLogged === false) {
-      return <Redirect to="/login" />;
+      return <Redirect to="/form-route/login" />;
     }
     return (
       <Wrapper>
         <Name>{` Привет ${user}`}</Name>
-        <StyledLink onClick={this.handleLogOut} to="/login">
+        <StyledLink onClick={this.handleLogOut} to="/form-route/login">
           Выход
         </StyledLink>
       </Wrapper>

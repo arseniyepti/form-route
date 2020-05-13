@@ -83,15 +83,11 @@ class Authorization extends React.Component {
                 />
               </Label>
               {(touched.password && errors.password) || <div>&nbsp;</div>}
-              <StyledButton
-                loading={loading}
-                onClick={this.res}
-                htmlType="submit"
-              >
+              <StyledButton loading={loading} htmlType="submit">
                 Войти
               </StyledButton>
               <AuthMessage authorization={authorization} />
-              <StyledLink to="/signup">Регистрация</StyledLink>
+              <StyledLink to="/form-route/signup">Регистрация</StyledLink>
             </StyledForm>
           </Section>
         )}

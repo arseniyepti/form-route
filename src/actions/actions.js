@@ -19,7 +19,7 @@ export const setAuthState = (history, { ...props }) => async (dispatch) => {
           user: response.data.user,
         })
       );
-      history.push("/");
+      history.push("/form-route/");
     }
   } catch (error) {
     dispatch(

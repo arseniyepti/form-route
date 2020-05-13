@@ -102,7 +102,7 @@ class Registration extends React.Component {
                 Регистрация
               </StyledButton>
               {<RegMessage registration={registration} />}
-              <StyledLink to="/login">Войти</StyledLink>
+              <StyledLink to="/form-route/login">Войти</StyledLink>
             </StyledForm>
           </Section>
         )}

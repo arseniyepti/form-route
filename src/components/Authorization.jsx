@@ -1,8 +1,14 @@
 import React, { Component } from "react";
+import { Link, Redirect } from "react-router-dom";
 
 class Authorization extends Component {
   render() {
-    return <div>452524524525</div>;
+    return (
+      <div>
+        AAAAAAAAAAAAAA
+        <Link to="/form-route/login"> fsdgg</Link>
+      </div>
+    );
   }
 }
 

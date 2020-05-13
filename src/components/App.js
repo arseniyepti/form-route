@@ -21,14 +21,14 @@ class App extends React.Component {
           <Route
             history={history}
             exact
-            path="/form-route/"
+            path="/form-route/login"
             isLogged={isLogged}
             component={Main}
           />
           <Route
             history={history}
             exact
-            path="/form-route/login/"
+            path="/form-route/"
             isLogged={isLogged}
             component={Authorization}
           />

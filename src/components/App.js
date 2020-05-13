@@ -36,7 +36,6 @@ class App extends React.Component {
             history={history}
             exact
             path="/form-route/signup"
-            isLogged={isLogged}
             component={Registration}
           />
         </Switch>

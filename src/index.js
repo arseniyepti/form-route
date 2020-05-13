@@ -15,7 +15,7 @@ const GlobalStyle = createGlobalStyle`
   body {
     padding: 100px;
     background-color: rgba(88,154,255,0.41);
-    font-family: 'Arial', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     font-size: 16px;
     display:flex;
     justify-content:center;

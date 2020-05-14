@@ -41,7 +41,6 @@ const regState = handleActions(
   {
     UIState: {
       loading: false,
-      registration: undefined,
     },
   }
 );

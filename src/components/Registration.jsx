@@ -1,5 +1,4 @@
 import { Button, Input } from "antd";
-import "antd/dist/antd.css";
 import { Field, Formik } from "formik";
 import React from "react";
 import { connect } from "react-redux";
@@ -16,7 +15,6 @@ const mapStateToProps = (state) => {
     loading: regState.UIState.loading,
   };
 };
-
 const actionCreators = {
   setRegState: actions.setRegState,
   RegBtnLoading: actions.RegBtnLoading,

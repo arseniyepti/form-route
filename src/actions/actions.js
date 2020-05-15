@@ -14,7 +14,6 @@ export const setAuthState = (history, { ...props }) => async (dispatch) => {
     const response = await axiosInstance.post(url, {
       user: { ...props },
     });
-    console.log(3545325);
     const { token, username } = response.data.user;
     localStorage.setItem("token", token);
     localStorage.setItem("username", username);

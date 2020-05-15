@@ -38,7 +38,6 @@ class Registration extends React.Component {
           const { setRegState, fetchRegistrationFinally } = this.props;
           fetchRegistrationFinally({ loading: true });
           const regStateResult = await setRegState(name, email, password);
-          console.log(regStateResult);
           if (regStateResult) {
             resetForm();
             history.push("/form-route/login");

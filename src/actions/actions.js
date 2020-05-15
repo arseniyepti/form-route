@@ -14,17 +14,16 @@ export const setAuthState = (history, { ...props }) => async (dispatch) => {
     const response = await axiosInstance.post(url, {
       user: { ...props },
     });
-    if (response.statusText === "") {
-      const { token, username } = response.data.user;
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", username);
-      dispatch(
-        fetchAuthorizationSuccess({
-          isLogged: true,
-        })
-      );
-      return true;
-    }
+    console.log(3545325);
+    const { token, username } = response.data.user;
+    localStorage.setItem("token", token);
+    localStorage.setItem("username", username);
+    dispatch(
+      fetchAuthorizationSuccess({
+        isLogged: true,
+      })
+    );
+    return true;
   } catch (error) {
     const emailOrPassword = error.response.data.errors["email or password"];
     dispatch(
@@ -42,25 +41,22 @@ export const setAuthState = (history, { ...props }) => async (dispatch) => {
   }
 };
 
-export const setRegState = (name, email, password) => async (dispatch) => {
+export const setRegState = (username, email, password) => async (dispatch) => {
   const url = "/users";
   try {
-    const response = await axiosInstance.post(url, {
+    await axiosInstance.post(url, {
       user: {
-        username: name,
+        username,
         email,
         password,
       },
     });
-
-    if (response.statusText === "") {
-      dispatch(
-        fetchRegistrationSuccess({
-          registration: true,
-        })
-      );
-      return true;
-    }
+    dispatch(
+      fetchRegistrationSuccess({
+        registration: true,
+      })
+    );
+    return true;
   } catch (error) {
     const { email, password, username } = error.response.data.errors;
     dispatch(

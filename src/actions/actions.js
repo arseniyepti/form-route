@@ -1,35 +1,41 @@
 import { createAction } from "redux-actions";
 import axiosInstance from "../heplers/axiosInstance.js";
 
-export const setAuthorizationSuccess = createAction("AUTH_STATE_");
-export const setRegistrationSuccess = createAction("REG_STATE");
-export const setAuthUIState = createAction("AUTH_UI_STATE");
-export const AuthBtnLoading = createAction("STOP_AUTH_BTN_LOADING");
-export const RegBtnLoading = createAction("STOP_REG_BTN_LOADING");
+export const fetchAuthorizationSuccess = createAction("AUTH_FETCH_SUCCESS");
+export const fetchAuthorizationFailure = createAction("AUTH_FETCH_FAILURE");
+export const fetchAuthorizationFinally = createAction("AUTH_FETCH_FINALLY");
+export const fetchRegistrationSuccess = createAction("REG_FETCH_SUCCESS");
+export const fetchRegistrationFailure = createAction("REG_FETCH_FAILURE");
+export const fetchRegistrationFinally = createAction("REG_FETCH_FINALLY");
 
 export const setAuthState = (history, { ...props }) => async (dispatch) => {
+  const url = "/users/login";
   try {
-    const response = await axiosInstance.post("/users/login", {
+    const response = await axiosInstance.post(url, {
       user: { ...props },
     });
-    if (response.status === 200) {
+    if (response.statusText === "") {
+      const { token, username } = response.data.user;
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", username);
       dispatch(
-        setAuthorizationSuccess({
+        fetchAuthorizationSuccess({
           isLogged: true,
-          user: response.data.user,
         })
       );
-      history.push("/form-route/");
+      return true;
     }
   } catch (error) {
+    const emailOrPassword = error.response.data.errors["email or password"];
     dispatch(
-      setAuthUIState({
+      fetchAuthorizationFailure({
+        emailOrPassword,
         authorization: false,
       })
     );
   } finally {
     dispatch(
-      AuthBtnLoading({
+      fetchAuthorizationFinally({
         loading: false,
       })
     );
@@ -37,30 +43,38 @@ export const setAuthState = (history, { ...props }) => async (dispatch) => {
 };
 
 export const setRegState = (name, email, password) => async (dispatch) => {
+  const url = "/users";
   try {
-    const response = await axiosInstance.post("/users", {
+    const response = await axiosInstance.post(url, {
       user: {
         username: name,
         email,
         password,
       },
     });
-    if (response.status === 200) {
+
+    if (response.statusText === "") {
       dispatch(
-        setRegistrationSuccess({
+        fetchRegistrationSuccess({
           registration: true,
         })
       );
+      return true;
     }
   } catch (error) {
+    const { email, password, username } = error.response.data.errors;
     dispatch(
-      setRegistrationSuccess({
+      fetchRegistrationFailure({
+        email,
+        password,
+        username,
         registration: false,
       })
     );
+    return false;
   } finally {
     dispatch(
-      RegBtnLoading({
+      fetchRegistrationFinally({
         loading: false,
       })
     );

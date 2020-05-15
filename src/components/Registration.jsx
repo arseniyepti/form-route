@@ -6,23 +6,26 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import * as actions from "../actions/actions";
 import { validationSchemaRegForm } from "../heplers/yupValidation.js";
-import RegMessage from "./RegMessage.jsx";
 
 const mapStateToProps = (state) => {
-  const { regState } = state;
+  const { registration, loading } = state.regState.UIState;
+  const { email, password, username } = state.regState.errors;
   return {
-    registration: regState.UIState.registration,
-    loading: regState.UIState.loading,
+    registration,
+    loading,
+    email,
+    password,
+    username,
   };
 };
 const actionCreators = {
   setRegState: actions.setRegState,
-  RegBtnLoading: actions.RegBtnLoading,
+  fetchRegistrationFinally: actions.fetchRegistrationFinally,
 };
 
 class Registration extends React.Component {
   render() {
-    const { registration, loading } = this.props;
+    const { loading, email, password, username, history } = this.props;
     return (
       <Formik
         initialValues={{
@@ -31,12 +34,14 @@ class Registration extends React.Component {
           name: "",
         }}
         validationSchema={validationSchemaRegForm}
-        onSubmit={({ name, email, password }, { resetForm }) => {
-          const { setRegState, RegBtnLoading } = this.props;
-          RegBtnLoading({ loading: true });
-          setRegState(name, email, password);
-          if (registration) {
+        onSubmit={async ({ name, email, password }, { resetForm }) => {
+          const { setRegState, fetchRegistrationFinally } = this.props;
+          fetchRegistrationFinally({ loading: true });
+          const regStateResult = await setRegState(name, email, password);
+          console.log(regStateResult);
+          if (regStateResult) {
             resetForm();
+            history.push("/form-route/login");
           }
         }}
       >
@@ -51,8 +56,9 @@ class Registration extends React.Component {
           <Section>
             <StyledForm onSubmit={handleSubmit}>
               <Label>
-                Имя<SymSpan>*</SymSpan>
+                Name<SymSpan>*</SymSpan>
                 <Field
+                  onPressEnter={handleSubmit}
                   onChange={(event) => {
                     setFieldTouched("name");
                     handleChange(event);
@@ -64,10 +70,14 @@ class Registration extends React.Component {
                   component={StyledInput}
                 />
               </Label>
-              {(touched.name && errors.name) || <div>&nbsp;</div>}
+              {(touched.name && errors.name) || null}
+              {username ? (
+                <div style={{ marginLeft: "auto" }}>{`Name ${username}`}</div>
+              ) : null}
               <Label>
                 Email<SymSpan>*</SymSpan>
                 <Field
+                  onPressEnter={handleSubmit}
                   onChange={(event) => {
                     setFieldTouched("email");
                     handleChange(event);
@@ -79,10 +89,14 @@ class Registration extends React.Component {
                   component={StyledInput}
                 />
               </Label>
-              {(touched.email && errors.email) || <div>&nbsp;</div>}
+              {(touched.email && errors.email) || null}
+              {email ? (
+                <div style={{ marginLeft: "auto" }}>{`Email ${email}`}</div>
+              ) : null}
               <Label>
-                Пароль<SymSpan>*</SymSpan>
+                Password<SymSpan>*</SymSpan>
                 <Field
+                  onPressEnter={handleSubmit}
                   onChange={(event) => {
                     setFieldTouched("password");
                     handleChange(event);
@@ -95,12 +109,16 @@ class Registration extends React.Component {
                   component={StyledInputPassword}
                 />
               </Label>
-              {(touched.password && errors.password) || <div>&nbsp;</div>}
-              <StyledButton loading={loading} htmlType="submit">
-                Регистрация
+              {(touched.password && errors.password) || null}
+              {password ? (
+                <div
+                  style={{ marginLeft: "auto" }}
+                >{`Password ${password}`}</div>
+              ) : null}
+              <StyledButton onClick={handleSubmit} loading={loading}>
+                Sign up
               </StyledButton>
-              {<RegMessage registration={registration} />}
-              <StyledLink to="/form-route/login">Войти</StyledLink>
+              <StyledLink to="/form-route/login">Sign in</StyledLink>
             </StyledForm>
           </Section>
         )}
@@ -143,9 +161,10 @@ const StyledInputPassword = styled(Input.Password)`
 const StyledForm = styled.form`
   display: flex;
   height: 300px;
+  max-width: 400px;
   flex-flow: column;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
 `;
 
 const StyledLink = styled(Link)`

@@ -6,25 +6,27 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import * as actions from "../actions/actions";
 import { validationSchemaAuthForm } from "../heplers/yupValidation.js";
-import AuthMessage from "./AuthMessage";
 
 const mapStateToProps = (state) => {
-  const { authState } = state;
+  const { isLogged } = state.authState;
+  const { loading, authorization } = state.authState.UIState;
+  const { emailOrPassword } = state.authState.errors;
   return {
-    isLogged: authState.isLogged,
-    loading: authState.UIState.loading,
-    authorization: authState.UIState.authorization,
+    isLogged,
+    loading,
+    authorization,
+    emailOrPassword,
   };
 };
 
 const actionCreators = {
   setAuthState: actions.setAuthState,
-  AuthBtnLoading: actions.AuthBtnLoading,
+  fetchAuthorizationFinally: actions.fetchAuthorizationFinally,
 };
 
 class Authorization extends React.Component {
   render() {
-    const { loading, authorization, history } = this.props;
+    const { loading, history, emailOrPassword } = this.props;
     return (
       <Formik
         initialValues={{
@@ -32,12 +34,13 @@ class Authorization extends React.Component {
           email: "",
         }}
         validationSchema={validationSchemaAuthForm}
-        onSubmit={({ email, password }, { resetForm }) => {
-          const { setAuthState, AuthBtnLoading } = this.props;
-          AuthBtnLoading({ loading: true });
-          setAuthState(history, { email, password });
-          if (authorization && loading) {
+        onSubmit={async ({ email, password }, { resetForm }) => {
+          const { setAuthState, fetchAuthorizationFinally } = this.props;
+          fetchAuthorizationFinally({ loading: true });
+          const AuthState = await setAuthState(history, { email, password });
+          if (AuthState) {
             resetForm();
+            history.push("/form-route/");
           }
         }}
       >
@@ -54,6 +57,7 @@ class Authorization extends React.Component {
               <Label>
                 Email<SymSpan>*</SymSpan>
                 <Field
+                  onPressEnter={handleSubmit}
                   onChange={(event) => {
                     setFieldTouched("email");
                     handleChange(event);
@@ -67,8 +71,9 @@ class Authorization extends React.Component {
               </Label>
               {(touched.email && errors.email) || <div>&nbsp;</div>}
               <Label>
-                Пароль<SymSpan>*</SymSpan>
+                Password<SymSpan>*</SymSpan>
                 <Field
+                  onPressEnter={handleSubmit}
                   onChange={(event) => {
                     setFieldTouched("password");
                     handleChange(event);
@@ -82,11 +87,13 @@ class Authorization extends React.Component {
                 />
               </Label>
               {(touched.password && errors.password) || <div>&nbsp;</div>}
-              <StyledButton loading={loading} htmlType="submit">
-                Войти
+              <StyledButton onClick={handleSubmit} loading={loading}>
+                Sign in
               </StyledButton>
-              <AuthMessage authorization={authorization} />
-              <StyledLink to="/form-route/signup">Регистрация</StyledLink>
+              {emailOrPassword ? (
+                <div>{`Email or password ${emailOrPassword}`}</div>
+              ) : null}
+              <StyledLink to="/form-route/signup">Sign up</StyledLink>
             </StyledForm>
           </Section>
         )}
@@ -130,6 +137,7 @@ const StyledInputPassword = styled(Input.Password)`
 const StyledForm = styled.form`
   display: flex;
   height: 220px;
+  max-width: 400px;
   flex-flow: column;
   align-items: center;
   justify-content: space-around;

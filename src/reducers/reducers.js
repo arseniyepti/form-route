@@ -4,16 +4,22 @@ import * as actions from "../actions/actions";
 
 const authState = handleActions(
   {
-    [actions.setAuthorizationSuccess]: (
+    [actions.fetchAuthorizationSuccess]: (state, { payload: { isLogged } }) => {
+      return { ...state, isLogged };
+    },
+    [actions.fetchAuthorizationFailure]: (
       state,
-      { payload: { isLogged, user } }
+      { payload: { emailOrPassword, authorization } }
     ) => {
-      return { ...state, isLogged, user };
+      return {
+        ...state,
+        UIState: { ...state.UIState, authorization },
+        errors: {
+          emailOrPassword,
+        },
+      };
     },
-    [actions.setAuthUIState]: (state, { payload: { authorization } }) => {
-      return { ...state, UIState: { ...state.UIState, authorization } };
-    },
-    [actions.AuthBtnLoading]: (state, { payload: { loading } }) => {
+    [actions.fetchAuthorizationFinally]: (state, { payload: { loading } }) => {
       return { ...state, UIState: { ...state.UIState, loading } };
     },
   },
@@ -23,24 +29,47 @@ const authState = handleActions(
       loading: false,
       authorization: true,
     },
+    errors: {
+      email: null,
+      password: null,
+    },
   }
 );
 
 const regState = handleActions(
   {
-    [actions.setRegistrationSuccess]: (
+    [actions.fetchRegistrationSuccess]: (
       state,
       { payload: { registration } }
     ) => {
       return { ...state, UIState: { ...state.UIState, registration } };
     },
-    [actions.RegBtnLoading]: (state, { payload: { loading } }) => {
+    [actions.fetchRegistrationFailure]: (
+      state,
+      { payload: { email, password, username, registration } }
+    ) => {
+      return {
+        ...state,
+        UIState: { ...state.UIState, registration },
+        errors: {
+          email,
+          password,
+          username,
+        },
+      };
+    },
+    [actions.fetchRegistrationFinally]: (state, { payload: { loading } }) => {
       return { ...state, UIState: { ...state.UIState, loading } };
     },
   },
   {
     UIState: {
       loading: false,
+    },
+    errors: {
+      email: null,
+      password: null,
+      username: null,
     },
   }
 );

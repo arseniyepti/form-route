@@ -8,30 +8,31 @@ const mapStateToProps = (state) => {
   const { authState } = state;
   return {
     isLogged: authState.isLogged,
-    user: authState.user ? authState.user.username : null,
   };
 };
 
 const actionCreators = {
-  setAuthorizationSuccess: actions.setAuthorizationSuccess,
+  fetchAuthorizationSuccess: actions.fetchAuthorizationSuccess,
 };
 
 class Main extends Component {
   handleLogOut = () => {
-    const { setAuthorizationSuccess } = this.props;
-    setAuthorizationSuccess({ isLogged: false });
+    const { fetchAuthorizationSuccess } = this.props;
+    fetchAuthorizationSuccess({ isLogged: false });
   };
 
   render() {
-    const { isLogged, user } = this.props;
-    if (isLogged === false) {
+    const { isLogged } = this.props;
+    const accept = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    if (isLogged === false && !accept) {
       return <Redirect to="/form-route/login" />;
     }
     return (
       <Wrapper>
-        <Name>{` Привет ${user}`}</Name>
+        <Name>{` Hi, ${username}, I know It is you`}</Name>
         <StyledLink onClick={this.handleLogOut} to="/form-route/login">
-          Выход
+          Logout
         </StyledLink>
       </Wrapper>
     );

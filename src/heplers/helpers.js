@@ -108,7 +108,3 @@ export const addTags = (tag, setFieldValue, id, addTag) => () => {
   addTag({ tag, id });
   setFieldValue("tags", "");
 };
-
-export const addTagsEnter = (tag, setFieldValue) => () => {
-  addTags(tag, setFieldValue)();
-};

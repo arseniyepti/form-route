@@ -133,7 +133,12 @@ class AddArticle extends React.Component {
                 <TagsWrap>
                   <Field
                     onChange={handleChange}
-                    onPressEnter={addTagsEnter(values.tags, setFieldValue)}
+                    onPressEnter={addTags(
+                      values.tags,
+                      setFieldValue,
+                      _uniqueId,
+                      addTag
+                    )}
                     value={values.tags}
                     name="tags"
                     id="tags"

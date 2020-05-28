@@ -67,7 +67,7 @@ class App extends React.Component {
         <AuthMessage />
         <Wrap onClick={() => authModalStateSuccess()} state={authModalState} />
         <Switch>
-          <Route exact path="/form-route" component={Main} />
+          <Route exact path="/form-route/" component={Main} />
           <Route exact path="/form-route/login" component={Authorization} />
           <Route exact path="/form-route/signup" component={Registration} />
           <Route exact path="/form-route/add" component={AddArticle} />

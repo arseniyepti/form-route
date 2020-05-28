@@ -159,7 +159,7 @@ class EditArticle extends React.Component {
               >
                 Send
               </StyledButton>
-              <StyledLink to="/form-route">Main</StyledLink>
+              <StyledLink to="/form-route/">Main</StyledLink>
             </StyledForm>
           </Section>
         )}

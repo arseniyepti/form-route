@@ -137,7 +137,7 @@ const Title = styled(Link)`
 
 const Description = styled(Link)`
   display: ${() => {
-    return window.location.pathname === "/form-route" ? "none" : "block";
+    return window.location.pathname === "/form-route/" ? "none" : "block";
   }};
   color: rgba(5, 12, 22, 0.5);
   width: 650px;
@@ -148,7 +148,7 @@ const Description = styled(Link)`
 
 const Paragraph = styled.p`
   display: ${() => {
-    return window.location.pathname === "/form-route" ? "none" : "block";
+    return window.location.pathname === "/form-route/" ? "none" : "block";
   }};
   width: 700px;
   padding: 20px 20px;

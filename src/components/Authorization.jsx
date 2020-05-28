@@ -38,7 +38,7 @@ class Authorization extends React.Component {
           const AuthState = await fetchAuthorization({ email, password });
           if (AuthState) {
             resetForm();
-            history.push("/form-route");
+            history.push("/form-route/");
           }
         }}
       >
@@ -97,7 +97,7 @@ class Authorization extends React.Component {
               ) : null}
               <StyledLink to="/form-route/signup">Sign up</StyledLink>
 
-              <StyledLink to="/form-route">Return to Main</StyledLink>
+              <StyledLink to="/form-route/">Return to Main</StyledLink>
             </StyledForm>
           </Section>
         )}

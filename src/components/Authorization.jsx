@@ -5,14 +5,12 @@ import { connect } from "react-redux";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import * as actions from "../actions/actions";
-import { validationSchemaAuthForm } from "../heplers/yupValidation.js";
+import { validationSchemaAuthForm } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { isLogged } = state.authState;
   const { loading, authorization } = state.authState.UIState;
   const { emailOrPassword } = state.authState.errors;
   return {
-    isLogged,
     loading,
     authorization,
     emailOrPassword,
@@ -20,7 +18,7 @@ const mapStateToProps = (state) => {
 };
 
 const actionCreators = {
-  setAuthState: actions.setAuthState,
+  fetchAuthorization: actions.fetchAuthorization,
   fetchAuthorizationFinally: actions.fetchAuthorizationFinally,
 };
 
@@ -35,12 +33,12 @@ class Authorization extends React.Component {
         }}
         validationSchema={validationSchemaAuthForm}
         onSubmit={async ({ email, password }, { resetForm }) => {
-          const { setAuthState, fetchAuthorizationFinally } = this.props;
+          const { fetchAuthorization, fetchAuthorizationFinally } = this.props;
           fetchAuthorizationFinally({ loading: true });
-          const AuthState = await setAuthState(history, { email, password });
+          const AuthState = await fetchAuthorization({ email, password });
           if (AuthState) {
             resetForm();
-            history.push("/form-route/");
+            history.push("/form-route");
           }
         }}
       >
@@ -87,13 +85,19 @@ class Authorization extends React.Component {
                 />
               </Label>
               {(touched.password && errors.password) || <div>&nbsp;</div>}
-              <StyledButton onClick={handleSubmit} loading={loading}>
+              <StyledButton
+                type="primary"
+                onClick={handleSubmit}
+                loading={loading}
+              >
                 Sign in
               </StyledButton>
               {emailOrPassword ? (
                 <div>{`Email or password ${emailOrPassword}`}</div>
               ) : null}
               <StyledLink to="/form-route/signup">Sign up</StyledLink>
+
+              <StyledLink to="/form-route">Return to Main</StyledLink>
             </StyledForm>
           </Section>
         )}
@@ -114,6 +118,7 @@ const Section = styled.section`
   width: 500px;
   background-color: rgba(0, 33, 78, 0.12);
   border-radius: 10px;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
 `;
 
 const StyledButton = styled(Button)`
@@ -149,7 +154,7 @@ const StyledLink = styled(Link)`
 `;
 
 const SymSpan = styled.span`
-  font-size: 25px;
+  font-size: 16px;
   color: red;
   margin-right: auto;
   margin-left: 2px;

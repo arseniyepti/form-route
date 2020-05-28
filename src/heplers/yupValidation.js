@@ -11,4 +11,14 @@ const validationSchemaRegForm = Yup.object().shape({
   email: Yup.string().required("Поле не заполнено"),
 });
 
-export { validationSchemaRegForm, validationSchemaAuthForm };
+const validationSchemaAddArticle = Yup.object().shape({
+  title: Yup.string().required("Поле не заполнено"),
+  description: Yup.string().required("Поле не заполнено"),
+  body: Yup.string().required("Поле не заполнено"),
+});
+
+export {
+  validationSchemaRegForm,
+  validationSchemaAuthForm,
+  validationSchemaAddArticle,
+};

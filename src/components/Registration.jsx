@@ -19,7 +19,7 @@ const mapStateToProps = (state) => {
   };
 };
 const actionCreators = {
-  setRegState: actions.setRegState,
+  fetchRegistration: actions.fetchRegistration,
   fetchRegistrationFinally: actions.fetchRegistrationFinally,
 };
 
@@ -35,9 +35,9 @@ class Registration extends React.Component {
         }}
         validationSchema={validationSchemaRegForm}
         onSubmit={async ({ name, email, password }, { resetForm }) => {
-          const { setRegState, fetchRegistrationFinally } = this.props;
+          const { fetchRegistration, fetchRegistrationFinally } = this.props;
           fetchRegistrationFinally({ loading: true });
-          const regStateResult = await setRegState(name, email, password);
+          const regStateResult = await fetchRegistration(name, email, password);
           if (regStateResult) {
             resetForm();
             history.push("/form-route/login");
@@ -114,7 +114,11 @@ class Registration extends React.Component {
                   style={{ marginLeft: "auto" }}
                 >{`Password ${password}`}</div>
               ) : null}
-              <StyledButton onClick={handleSubmit} loading={loading}>
+              <StyledButton
+                type="primary"
+                onClick={handleSubmit}
+                loading={loading}
+              >
                 Sign up
               </StyledButton>
               <StyledLink to="/form-route/login">Sign in</StyledLink>
@@ -138,11 +142,11 @@ const Section = styled.section`
   width: 500px;
   background-color: rgba(0, 33, 78, 0.12);
   border-radius: 10px;
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
 `;
 
 const StyledButton = styled(Button)`
   margin-top: 10px;
-  margin-bottom: 5px;
 `;
 
 const StyledInput = styled(Input)`
@@ -168,11 +172,10 @@ const StyledForm = styled.form`
 
 const StyledLink = styled(Link)`
   text-decoration: none;
-  margin-top: 10px;
 `;
 
 const SymSpan = styled.span`
-  font-size: 25px;
+  font-size: 16px;
   color: red;
   margin-right: auto;
   margin-left: 2px;

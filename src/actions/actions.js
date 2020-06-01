@@ -1,13 +1,13 @@
 import { createAction } from "redux-actions";
-import { axiosInstance, axiosInstanceAuth } from "../heplers/axiosInstance.js";
+import { axiosInstanceAuth } from "../heplers/axiosInstance.js";
 
+export const fetchAuthorizationRequest = createAction("AUTH_FETCH_REQUEST");
 export const fetchAuthorizationSuccess = createAction("AUTH_FETCH_SUCCESS");
 export const fetchAuthorizationFailure = createAction("AUTH_FETCH_FAILURE");
-export const fetchAuthorizationFinally = createAction("AUTH_FETCH_FINALLY");
 
-export const fetchRegistrationSuccess = createAction("REG_FETCH_SUCCESS");
+export const fetchRegistrationRequest = createAction("REG_FETCH_REQUEST");
 export const fetchRegistrationFailure = createAction("REG_FETCH_FAILURE");
-export const fetchRegistrationFinally = createAction("REG_FETCH_FINALLY");
+export const fetchRegistrationSuccess = createAction("REG_FETCH_SUCCESS");
 
 export const fetchArticlesSuccess = createAction("ARTICLES_FETCH_SUCCESS");
 export const fetchArticlesFailure = createAction("ARTICLES_FETCH_FAILURE");
@@ -21,87 +21,53 @@ export const fetchFavouriteArticleFailure = createAction(
 
 export const fetchAddArticleSuccess = createAction("ADD_FETCH_SUCCESS");
 export const fetchAddArticleFailure = createAction("ADD_FETCH_FAILURE");
-export const fetchAddArticleFinally = createAction("ADD_FETCH_FINALLY");
+export const fetchAddArticleRequest = createAction("ADD_FETCH_REQUEST");
 
 export const fetchUpdateArticleSuccess = createAction("UPDATE_FETCH_SUCCESS");
 export const fetchUpdateArticleFailure = createAction("UPDATE_FETCH_FAILURE");
-export const fetchUpdateArticleFinally = createAction("UPDATE_FETCH_FINALLY");
+export const fetchUpdateArticleRequest = createAction("UPDATE_FETCH_REQUEST");
 
 export const fetchDeleteArticleSuccess = createAction("DELETE_FETCH_SUCCESS");
 export const fetchDeleteArticleFailure = createAction("DELETE_FETCH_FAILURE");
-export const fetchDeleteArticleFinally = createAction("DELETE_FETCH_FINALLY");
 
-export const addTag = createAction("ADD_TAG");
-export const changeTag = createAction("CHANGE_TAG");
-export const clearTags = createAction("CLEAR_TAG");
 export const authModalStateSuccess = createAction("AUTH_STATE_SUCCESS");
 export const authModalStateFailure = createAction("AUTH_STATE_FAILURE");
 
-export const fetchAuthorization = ({ ...props }) => async (dispatch) => {
+export const fetchAuthorization = ({ email, password }) => async (dispatch) => {
+  dispatch(fetchAuthorizationRequest());
   const url = "/users/login";
   try {
-    const response = await axiosInstance.post(url, {
-      user: { ...props },
+    const response = await axiosInstanceAuth.post(url, {
+      user: { email, password },
     });
     const { token, username } = response.data.user;
     localStorage.setItem("token", token);
     localStorage.setItem("username", username);
-    localStorage.setItem("name", username);
-    return true;
+    dispatch(fetchAuthorizationSuccess());
   } catch (error) {
     const emailOrPassword = error.response.data.errors["email or password"];
     dispatch(
       fetchAuthorizationFailure({
         emailOrPassword,
-        authorization: false,
       })
     );
-  } finally {
-    dispatch(
-      fetchAuthorizationFinally({
-        loading: false,
-      })
-    );
-  }
-};
-
-export const fetchFavouriteArticle = (slug, favorite) => async (dispatch) => {
-  const url = `/articles/${slug}/favorite`;
-  try {
-    const {
-      data: {
-        article: { favoritesCount, favorited, slug },
-      },
-    } = favorite
-      ? await axiosInstanceAuth.delete(url)
-      : await axiosInstanceAuth.post(url);
-    dispatch(fetchFavouriteArticleSuccess({ favoritesCount, slug, favorited }));
-  } catch (error) {
-    if (error.response.status === 401) {
-      dispatch(authModalStateFailure());
-    }
-    dispatch(fetchFavouriteArticleFailure());
   }
 };
 
 export const fetchRegistration = (username, email, password) => async (
   dispatch
 ) => {
+  dispatch(fetchRegistrationRequest());
   const url = "/users";
   try {
-    await axiosInstance.post(url, {
+    await axiosInstanceAuth.post(url, {
       user: {
         username,
         email,
         password,
       },
     });
-    dispatch(
-      fetchRegistrationSuccess({
-        registration: true,
-      })
-    );
-    return true;
+    dispatch(fetchRegistrationSuccess());
   } catch (error) {
     const { email, password, username } = error.response.data.errors;
     dispatch(
@@ -112,26 +78,30 @@ export const fetchRegistration = (username, email, password) => async (
         registration: false,
       })
     );
-    return false;
-  } finally {
-    dispatch(
-      fetchRegistrationFinally({
-        loading: false,
-      })
-    );
   }
 };
 
-export const fetchArticles = () => async (dispatch) => {
-  const count = sessionStorage.getItem("count");
+export const fetchArticles = (count = 0) => async (dispatch) => {
   const url = `/articles?limit=10&offset=${count}`;
   try {
     const {
       data: { articles, articlesCount },
-    } = await axiosInstance.get(url);
+    } = await axiosInstanceAuth.get(url);
     dispatch(fetchArticlesSuccess({ articles, articlesCount }));
   } catch (error) {
     dispatch(fetchArticlesFailure());
+  }
+};
+
+export const fetchFavouriteArticle = (slug, favorite) => async (dispatch) => {
+  const url = `/articles/${slug}/favorite`;
+  try {
+    return favorite
+      ? await axiosInstanceAuth.delete(url)
+      : await axiosInstanceAuth.post(url);
+  } catch (error) {
+    dispatch(fetchFavouriteArticleFailure());
+    dispatch(fetchFavouriteArticleFailure());
   }
 };
 
@@ -139,6 +109,7 @@ export const fetchAddArticles = (
   { title, description, body },
   tagList
 ) => async (dispatch) => {
+  dispatch(fetchAddArticleRequest());
   const url = `/articles`;
   try {
     await axiosInstanceAuth.post(url, {
@@ -151,12 +122,10 @@ export const fetchAddArticles = (
     });
     dispatch(fetchAddArticleSuccess());
   } catch (error) {
-    if (error.response.status === 401) {
-      dispatch(authModalStateFailure());
-    }
+    // if (error.response.status === 401) {
+    // 	dispatch(authModalStateFailure());
+    // }
     dispatch(fetchAddArticleFailure(error.response.status));
-  } finally {
-    dispatch(fetchAddArticleFinally({ loading: false }));
   }
 };
 
@@ -165,6 +134,7 @@ export const fetchUpdateArticles = (
   tagList,
   slug
 ) => async (dispatch) => {
+  dispatch(fetchUpdateArticleRequest());
   const url = `/articles/${slug}`;
   try {
     await axiosInstanceAuth.put(url, {
@@ -177,12 +147,10 @@ export const fetchUpdateArticles = (
     });
     dispatch(fetchUpdateArticleSuccess());
   } catch (error) {
-    if (error.response.status === 401) {
-      dispatch(authModalStateFailure());
-    }
+    // if (error.response.status === 401) {
+    // 	dispatch(authModalStateFailure());
+    // }
     dispatch(fetchUpdateArticleFailure(error.response.status));
-  } finally {
-    dispatch(fetchUpdateArticleFinally({ loading: false }));
   }
 };
 
@@ -192,11 +160,9 @@ export const fetchDeleteArticles = (slug) => async (dispatch) => {
     await axiosInstanceAuth.delete(url);
     dispatch(fetchDeleteArticleSuccess({ slug }));
   } catch (error) {
-    if (error.response.status === 401) {
-      dispatch(authModalStateFailure());
-    }
+    // if (error.response.status === 401) {
+    // 	dispatch(authModalStateFailure());
+    // }
     dispatch(fetchDeleteArticleFailure());
-  } finally {
-    dispatch(fetchDeleteArticleFinally());
   }
 };

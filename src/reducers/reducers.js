@@ -1,20 +1,14 @@
 import { combineReducers } from "redux";
 import { handleActions } from "redux-actions";
-import {
-  fetchAddArticleFailure,
-  fetchAddArticleSuccess,
-  fetchDeleteArticleSuccess,
-  fetchFavouriteArticleSuccess,
-} from "../actions/actions";
 import * as actions from "../actions/actions";
 
 const articlesFetchingState = handleActions(
   {
-    [actions.fetchArticlesFailure]: () => {
-      return "failed";
+    [actions.fetchArticlesSuccess]: () => {
+      return "success";
     },
   },
-  "none"
+  null
 );
 
 const authModalState = handleActions(
@@ -26,64 +20,93 @@ const authModalState = handleActions(
       return "failed";
     },
   },
-  "none"
+  null
+);
+
+const articlesFavouriteFetchingState = handleActions(
+  {
+    [actions.fetchFavouriteArticleFailure]: () => {
+      return "failed";
+    },
+  },
+  null
 );
 
 const addArticlesFetchingState = handleActions(
   {
     [actions.fetchAddArticleSuccess]: () => {
-      return "success";
+      return "request";
+    },
+    [actions.fetchAddArticleSuccess]: () => {
+      return "finished";
     },
     [actions.fetchAddArticleFailure]: (state, { payload }) => {
       return payload;
     },
   },
-  "none"
+  null
 );
 
 const updateArticlesFetchingState = handleActions(
   {
-    [actions.fetchUpdateArticleSuccess]: () => {
+    [actions.fetchUpdateArticleRequest]: () => {
       return "success";
+    },
+    [actions.fetchUpdateArticleSuccess]: () => {
+      return "finished";
     },
     [actions.fetchUpdateArticleFailure]: (state, { payload }) => {
       return payload;
     },
   },
-  "none"
+  null
 );
 
-const authState = handleActions(
+const authorizationState = handleActions(
   {
-    [actions.fetchAuthorizationSuccess]: (
-      state,
-      { payload: { token, username } }
-    ) => {
-      return { ...state, token, username };
+    [actions.fetchAuthorizationRequest]: () => {
+      return "request";
     },
+    [actions.fetchAuthorizationFailure]: () => {
+      return "failed";
+    },
+    [actions.fetchAuthorizationSuccess]: () => {
+      return "finished";
+    },
+  },
+  null
+);
+
+const registrationState = handleActions(
+  {
+    [actions.fetchRegistrationRequest]: () => {
+      return "request";
+    },
+    [actions.fetchRegistrationFailure]: () => {
+      return "failed";
+    },
+    [actions.fetchRegistrationSuccess]: () => {
+      return "finished";
+    },
+  },
+  null
+);
+
+const fetchAuthorization = handleActions(
+  {
     [actions.fetchAuthorizationFailure]: (
       state,
-      { payload: { emailOrPassword, authorization } }
+      { payload: { emailOrPassword } }
     ) => {
       return {
         ...state,
-        UIState: { ...state.UIState, authorization },
         errors: {
           emailOrPassword,
         },
       };
     },
-    [actions.fetchAuthorizationFinally]: (state, { payload: { loading } }) => {
-      return { ...state, UIState: { ...state.UIState, loading } };
-    },
   },
   {
-    token: "none",
-    username: "none",
-    UIState: {
-      loading: false,
-      authorization: true,
-    },
     errors: {
       email: null,
       password: null,
@@ -91,21 +114,14 @@ const authState = handleActions(
   }
 );
 
-const regState = handleActions(
+const fetchRegistration = handleActions(
   {
-    [actions.fetchRegistrationSuccess]: (
-      state,
-      { payload: { registration } }
-    ) => {
-      return { ...state, UIState: { ...state.UIState, registration } };
-    },
     [actions.fetchRegistrationFailure]: (
       state,
-      { payload: { email, password, username, registration } }
+      { payload: { email, password, username } }
     ) => {
       return {
         ...state,
-        UIState: { ...state.UIState, registration },
         errors: {
           email,
           password,
@@ -113,14 +129,8 @@ const regState = handleActions(
         },
       };
     },
-    [actions.fetchRegistrationFinally]: (state, { payload: { loading } }) => {
-      return { ...state, UIState: { ...state.UIState, loading } };
-    },
   },
   {
-    UIState: {
-      loading: false,
-    },
     errors: {
       email: null,
       password: null,
@@ -137,14 +147,22 @@ const articles = handleActions(
     ) => {
       return { ...state, articles, articlesCount };
     },
-    [actions.fetchFavouriteArticleSuccess]: (
-      state,
-      { payload: { favoritesCount, slug, favorited } }
-    ) => {
+    [actions.fetchFavouriteArticleSuccess]: (state, { payload: { slug } }) => {
       const changedArticles = state.articles.map((article) => {
-        return article.slug === slug
-          ? { ...article, favoritesCount, favorited }
-          : article;
+        if (article.slug === slug) {
+          return article.favorited
+            ? {
+                ...article,
+                favoritesCount: article.favoritesCount - 1,
+                favorited: !article.favorited,
+              }
+            : {
+                ...article,
+                favoritesCount: article.favoritesCount + 1,
+                favorited: !article.favorited,
+              };
+        }
+        return article;
       });
       return { ...state, articles: changedArticles };
     },
@@ -156,51 +174,20 @@ const articles = handleActions(
     },
   },
   {
-    articlesCount: 0,
+    articlesCount: 10,
     articles: [],
-  }
-);
-
-const tags = handleActions(
-  {
-    [actions.addTag]: (state, { payload: { tag, id } }) => {
-      return [{ tag, id: id() }, ...state];
-    },
-    [actions.clearTags]: (state) => {
-      state = [];
-      return state;
-    },
-    [actions.changeTag]: (state, { payload: { tagList, id } }) => {
-      state = [];
-      return tagList.reduce((acc, tag) => {
-        return [...acc, { tag, id: id() }];
-      }, state);
-    },
-  },
-  []
-);
-
-const addArticles = handleActions(
-  {
-    [actions.fetchAddArticleFinally]: (state, { payload: { loading } }) => {
-      return { ...state, UIState: { ...state.UIState, loading } };
-    },
-  },
-  {
-    UIState: {
-      loading: false,
-    },
   }
 );
 
 export default combineReducers({
   updateArticlesFetchingState,
   articlesFetchingState,
+  authorizationState,
   addArticlesFetchingState,
-  authState,
+  articlesFavouriteFetchingState,
+  fetchAuthorization,
   authModalState,
-  regState,
+  registrationState,
+  fetchRegistration,
   articles,
-  tags,
-  addArticles,
 });

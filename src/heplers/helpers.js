@@ -1,17 +1,14 @@
+import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { formatDistanceToNow } from "date-fns";
-import { Field } from "formik";
 import React from "react";
 import { Link } from "react-router-dom";
+import { Modal, notification } from "antd";
 
 export const convertDate = (date) => {
   return formatDistanceToNow(new Date(date), { addSuffix: true });
 };
 
-export const message = (result, name) => {
-  const nameOfUsing = name === "EditArticle" ? "updated" : "added";
-  if (result === "success") {
-    return <div>{`Article successfully ${nameOfUsing}`}</div>;
-  }
+export const message = (result) => {
   if (result === 401) {
     return <div>You need to log in</div>;
   }
@@ -25,6 +22,41 @@ export const changeLog = () => {
   return "Sign in";
 };
 
+export const openNotification = () => {
+  notification.open({
+    message: "Message from server",
+    description: "Ooops, something wrong",
+    duration: 2,
+  });
+};
+
+export const showConfirm = (slug, fetchDeleteArticles, fetchArticles) => () => {
+  Modal.confirm({
+    icon: <ExclamationCircleOutlined />,
+    content: "Are you sure?",
+    onOk: async () => {
+      await fetchDeleteArticles(slug);
+      await fetchArticles();
+    },
+    onCancel() {},
+  });
+};
+
+export const showModal = (state, authModalState) => {
+  return authModalState === "failed" || state;
+};
+
+export const handleOk = (history, authModalStateSuccess) => () => {
+  authModalStateSuccess();
+  showModal(false, "failed");
+  return history.push("/form-route/login");
+};
+
+export const onCancel = (authModalStateSuccess) => () => {
+  showModal(false, "failed");
+  return authModalStateSuccess();
+};
+
 export const changeName = () => {
   const name = localStorage.getItem("username");
   if (name) {
@@ -33,78 +65,17 @@ export const changeName = () => {
   return <Link to="/form-route/signup">Sign up</Link>;
 };
 
-export const getOtherArticles = (value, fetchArticles, articlesCount) => () => {
-  let count = parseFloat(sessionStorage.getItem("count"));
-  if (
-    (count === 0 && value === "prev") ||
-    (count === articlesCount && value === "next")
-  ) {
-    return;
-  }
-  if (value === "start") {
-    sessionStorage.setItem("count", 0);
-    return fetchArticles();
-  }
-  if (value === "end") {
-    sessionStorage.setItem("count", articlesCount);
-    return fetchArticles();
-  }
-  sessionStorage.setItem("count", value === "next" ? count + 10 : count - 10);
-  return fetchArticles();
-};
-
-export const setAccessToEdit = (
-  nameUI,
-  username,
+export const setAccess = (
   name,
   authModalStateFailure,
   history,
-  slug
+  slug,
+  value
 ) => () => {
-  if (!nameUI) {
-    return authModalStateFailure();
-  }
-  if (nameUI !== username) {
-    return;
-  }
   if (!name) {
     return authModalStateFailure();
   }
-  return history.push(`/form-route/${slug}/edit`);
-};
-
-export const renderTags = (values, handleChange, tags, StyledInputTag) => {
-  return tags.map(({ tag, id }) => {
-    return (
-      <Field
-        key={id}
-        defaultValue={tag}
-        value={values[`tags${id}`]}
-        onChange={handleChange}
-        id={`tags${id}`}
-        name={`tags${id}`}
-        type="text"
-        component={StyledInputTag}
-      />
-    );
-  });
-};
-
-export const getTagValues = (values, tags) => {
-  return tags
-    .map(({ tag, id }) => {
-      if (values[`tags${id}`] === "") {
-        return;
-      }
-      return values[`tags${id}`] ? values[`tags${id}`] : tag;
-    })
-    .filter((tag) => tag !== undefined);
-};
-
-export const addTags = (tag, setFieldValue, id, addTag) => () => {
-  if (tag === "") {
-    return;
-  }
-  addTag({ tag, id });
-  setFieldValue("tags", "");
+  return value === "add"
+    ? history.push(`/form-route/add`)
+    : history.push(`/form-route/${slug}/edit`);
 };

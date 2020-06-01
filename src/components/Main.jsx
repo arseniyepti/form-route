@@ -1,33 +1,31 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import styled from "styled-components";
 import * as actions from "../actions/actions";
-import { changeLog, changeName } from "../heplers/helpers";
+import { changeLog, changeName, setAccess } from "../heplers/helpers";
 import Article from "./Article";
-import Buttons from "./Buttons";
+import { Pagination, Button, Spin } from "antd";
 
 const mapStateToProps = (state) => {
-  const { articles, count, articlesCount } = state.articles;
+  const {
+    articles: { articles, articlesCount },
+    articlesFetchingState,
+  } = state;
   return {
     articles,
-    count,
     articlesCount,
+    articlesFetchingState,
   };
 };
 
 const actionCreators = {
   fetchAuthorizationSuccess: actions.fetchAuthorizationSuccess,
+  fetchArticles: actions.fetchArticles,
+  authModalStateFailure: actions.authModalStateFailure,
 };
 
 class Main extends Component {
-  constructor(props) {
-    super(props);
-    this.storage = sessionStorage.getItem("count")
-      ? null
-      : sessionStorage.setItem("count", 0);
-  }
-
   handleLogOut = () => {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("username");
@@ -35,28 +33,56 @@ class Main extends Component {
 
   renderArticles = () => {
     const { articles } = this.props;
-    if (articles.length !== 0) {
-      return articles.map((article) => {
-        return <Article key={article.slug} UIState={true} article={article} />;
-      });
-    }
+    return articles.map((article) => {
+      return <Article key={article.slug} article={article} />;
+    });
+  };
+  onChange = (event) => {
+    const { fetchArticles } = this.props;
+    const count = event + "0" - 10;
+    fetchArticles(count);
   };
 
   render() {
-    const count = sessionStorage.getItem("count");
-    const { articlesCount } = this.props;
+    const {
+      articlesCount,
+      authModalStateFailure,
+      history,
+      articlesFetchingState,
+    } = this.props;
+    const name = localStorage.getItem("username");
     return (
       <Container>
-        <Count>{`${count} out of ${articlesCount}`}</Count>
-        <Buttons />
+        <StyledPagination
+          defaultCurrent={1}
+          pageSize={10}
+          showSizeChanger={false}
+          total={articlesCount}
+          onChange={this.onChange}
+          showTotal={(total, range) => `${range[1]} of ${total} items`}
+        />
+        <AuthMessage>
+          For editing, deleting and adding articles you need{" "}
+          <MessageLink to="/form-route/login">{" Log in"}</MessageLink>
+        </AuthMessage>
         <Wrapper>
           <Name>{changeName()}</Name>
           <StyledLink onClick={this.handleLogOut} to="/form-route/login">
             {changeLog()}
           </StyledLink>
+          <StyledSpin
+            articlesFetchingState={articlesFetchingState}
+            size="large"
+            tip="Loading..."
+          />
           {this.renderArticles()}
         </Wrapper>
-        <AddButton to={"/form-route/add"}>Add</AddButton>
+        <AddButton
+          type="primary"
+          onClick={setAccess(name, authModalStateFailure, history, null, "add")}
+        >
+          Add
+        </AddButton>
       </Container>
     );
   }
@@ -64,7 +90,7 @@ class Main extends Component {
 
 const ConnectedMain = connect(mapStateToProps, actionCreators)(Main);
 
-export default ConnectedMain;
+export default withRouter(ConnectedMain);
 
 const Container = styled.div`
   display: flex;
@@ -87,6 +113,16 @@ const Wrapper = styled.section`
   padding-bottom: 30px;
 `;
 
+const StyledPagination = styled(Pagination)`
+  padding: 30px 0;
+`;
+
+const StyledSpin = styled(Spin)`
+  margin-top: 150px;
+  display: ${({ articlesFetchingState }) =>
+    articlesFetchingState === "success" ? "none" : "block"};
+`;
+
 const Name = styled.span`
   position: fixed;
   top: 20px;
@@ -94,36 +130,32 @@ const Name = styled.span`
   color: rgba(0, 13, 34, 0.72);
 `;
 
+const AuthMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  width: 700px;
+  background-color: rgba(233, 233, 113, 0.6);
+`;
+
+const MessageLink = styled(Link)`
+  padding: 0 5px;
+`;
+
 const StyledLink = styled(Link)`
+  padding: 0 5px;
   text-decoration: none;
   position: fixed;
   top: 20px;
   right: 30px;
 `;
 
-const AddButton = styled(Link)`
+const AddButton = styled(Button)`
   width: 90px;
   height: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgb(24, 144, 255);
-  color: white;
-  border: 1px solid rgb(24, 144, 255);
   margin-top: auto;
-  transition: all 0.5s ease;
-
-  &:hover {
-    background-color: rgb(64, 169, 255);
-    color: white;
-  }
-`;
-
-const Count = styled.div`
-  display: flex;
-  justify-content: center;
-  font-weight: 600;
-  color: #192c3e;
-  width: 150px;
-  height: 30px;
 `;

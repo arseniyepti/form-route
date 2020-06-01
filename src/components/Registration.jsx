@@ -8,11 +8,10 @@ import * as actions from "../actions/actions";
 import { validationSchemaRegForm } from "../heplers/yupValidation.js";
 
 const mapStateToProps = (state) => {
-  const { registration, loading } = state.regState.UIState;
-  const { email, password, username } = state.regState.errors;
+  const { registrationState } = state;
+  const { email, password, username } = state.fetchRegistration.errors;
   return {
-    registration,
-    loading,
+    registrationState,
     email,
     password,
     username,
@@ -20,12 +19,19 @@ const mapStateToProps = (state) => {
 };
 const actionCreators = {
   fetchRegistration: actions.fetchRegistration,
-  fetchRegistrationFinally: actions.fetchRegistrationFinally,
+  fetchRegistrationSuccess: actions.fetchRegistrationSuccess,
 };
 
 class Registration extends React.Component {
   render() {
-    const { loading, email, password, username, history } = this.props;
+    const {
+      email,
+      password,
+      username,
+      history,
+      registrationState,
+      fetchRegistration,
+    } = this.props;
     return (
       <Formik
         initialValues={{
@@ -35,10 +41,9 @@ class Registration extends React.Component {
         }}
         validationSchema={validationSchemaRegForm}
         onSubmit={async ({ name, email, password }, { resetForm }) => {
-          const { fetchRegistration, fetchRegistrationFinally } = this.props;
-          fetchRegistrationFinally({ loading: true });
-          const regStateResult = await fetchRegistration(name, email, password);
-          if (regStateResult) {
+          await fetchRegistration(name, email, password);
+          const { registrationState } = this.props;
+          if (registrationState === "finished") {
             resetForm();
             history.push("/form-route/login");
           }
@@ -114,10 +119,29 @@ class Registration extends React.Component {
                   style={{ marginLeft: "auto" }}
                 >{`Password ${password}`}</div>
               ) : null}
+              <Label>
+                Repeat Password<SymSpan>*</SymSpan>
+                <Field
+                  onPressEnter={handleSubmit}
+                  onChange={(event) => {
+                    setFieldTouched("repeatPassword");
+                    handleChange(event);
+                  }}
+                  value={values.repeatPassword}
+                  name="repeatPassword"
+                  visibilityToggle
+                  id="repeatPassword"
+                  type="password"
+                  component={StyledInputPassword}
+                />
+              </Label>
+              {(touched.repeatPassword && errors.repeatPassword) || (
+                <div>&nbsp;</div>
+              )}
               <StyledButton
                 type="primary"
                 onClick={handleSubmit}
-                loading={loading}
+                loading={registrationState === "finished"}
               >
                 Sign up
               </StyledButton>
@@ -139,7 +163,7 @@ export default ConnectedRegistration;
 
 const Section = styled.section`
   padding: 30px;
-  width: 500px;
+  width: 550px;
   background-color: rgba(0, 33, 78, 0.12);
   border-radius: 10px;
   box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.5);
@@ -164,7 +188,7 @@ const StyledInputPassword = styled(Input.Password)`
 const StyledForm = styled.form`
   display: flex;
   height: 300px;
-  max-width: 400px;
+  max-width: 550px;
   flex-flow: column;
   align-items: center;
   justify-content: space-between;
@@ -183,7 +207,7 @@ const SymSpan = styled.span`
 
 const Label = styled.label`
   display: flex;
-  width: 400px;
+  width: 450px;
   justify-content: space-between;
   align-items: center;
 `;

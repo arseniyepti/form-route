@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import "antd/dist/antd.css";
 import { Provider } from "react-redux";
+import { BrowserRouter as Router } from "react-router-dom";
 import thunk from "redux-thunk";
 import { createStore, applyMiddleware, compose } from "redux";
 import { Normalize } from "styled-normalize";
@@ -47,10 +48,12 @@ const store = createStore(
 );
 
 ReactDOM.render(
-  <Provider store={store}>
-    <Normalize />
-    <GlobalStyle />
-    <App />
-  </Provider>,
+  <Router>
+    <Provider store={store}>
+      <Normalize />
+      <GlobalStyle />
+      <App />
+    </Provider>
+  </Router>,
   document.getElementById("root")
 );

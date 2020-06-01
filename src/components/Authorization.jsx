@@ -8,23 +8,27 @@ import * as actions from "../actions/actions";
 import { validationSchemaAuthForm } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { loading, authorization } = state.authState.UIState;
-  const { emailOrPassword } = state.authState.errors;
+  const { authorizationState } = state;
+  const { emailOrPassword } = state.fetchAuthorization.errors;
   return {
-    loading,
-    authorization,
     emailOrPassword,
+    authorizationState,
   };
 };
 
 const actionCreators = {
   fetchAuthorization: actions.fetchAuthorization,
-  fetchAuthorizationFinally: actions.fetchAuthorizationFinally,
+  fetchAuthorizationSuccess: actions.fetchAuthorizationSuccess,
 };
 
 class Authorization extends React.Component {
   render() {
-    const { loading, history, emailOrPassword } = this.props;
+    const {
+      authorizationState,
+      history,
+      emailOrPassword,
+      fetchAuthorization,
+    } = this.props;
     return (
       <Formik
         initialValues={{
@@ -33,10 +37,9 @@ class Authorization extends React.Component {
         }}
         validationSchema={validationSchemaAuthForm}
         onSubmit={async ({ email, password }, { resetForm }) => {
-          const { fetchAuthorization, fetchAuthorizationFinally } = this.props;
-          fetchAuthorizationFinally({ loading: true });
-          const AuthState = await fetchAuthorization({ email, password });
-          if (AuthState) {
+          await fetchAuthorization({ email, password });
+          const { authorizationState } = this.props;
+          if (authorizationState === "finished") {
             resetForm();
             history.push("/form-route/");
           }
@@ -88,11 +91,11 @@ class Authorization extends React.Component {
               <StyledButton
                 type="primary"
                 onClick={handleSubmit}
-                loading={loading}
+                loading={authorizationState === "request"}
               >
                 Sign in
               </StyledButton>
-              {emailOrPassword ? (
+              {authorizationState === "failed" ? (
                 <div>{`Email or password ${emailOrPassword}`}</div>
               ) : null}
               <StyledLink to="/form-route/signup">Sign up</StyledLink>

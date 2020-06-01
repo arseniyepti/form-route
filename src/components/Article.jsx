@@ -1,40 +1,52 @@
 import {
   CalendarTwoTone,
   CopyrightCircleTwoTone,
-  LikeTwoTone,
   QuestionCircleTwoTone,
   HeartTwoTone,
   DeleteTwoTone,
-  StopTwoTone,
 } from "@ant-design/icons";
 import { Button } from "antd";
 import { Link, withRouter } from "react-router-dom";
 import * as actions from "../actions/actions";
-import { convertDate, setAccessToEdit } from "../heplers/helpers";
+import {
+  convertDate,
+  setAccess,
+  openNotification,
+  showConfirm,
+} from "../heplers/helpers";
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
+
+const mapStateToProps = (state) => {
+  const { articlesFavouriteFetchingState } = state;
+  return {
+    articlesFavouriteFetchingState,
+  };
+};
 
 const actionCreators = {
   fetchFavouriteArticle: actions.fetchFavouriteArticle,
   fetchDeleteArticles: actions.fetchDeleteArticles,
   fetchArticles: actions.fetchArticles,
   authModalStateFailure: actions.authModalStateFailure,
+  fetchFavouriteArticleSuccess: actions.fetchFavouriteArticleSuccess,
 };
 
 class Article extends Component {
-  setFavouriteArticle = () => {
+  setFavouriteArticle = async () => {
     const {
       fetchFavouriteArticle,
+      fetchFavouriteArticleSuccess,
       article: { slug, favorited },
     } = this.props;
-    fetchFavouriteArticle(slug, favorited);
-  };
-
-  deleteArticle = (slug) => async () => {
-    const { fetchDeleteArticles, fetchArticles } = this.props;
-    await fetchDeleteArticles(slug);
-    await fetchArticles();
+    fetchFavouriteArticleSuccess({ slug });
+    await fetchFavouriteArticle(slug, favorited);
+    const { articlesFavouriteFetchingState } = this.props;
+    if (articlesFavouriteFetchingState === "failed") {
+      openNotification();
+      fetchFavouriteArticleSuccess({ slug });
+    }
   };
 
   render() {
@@ -49,36 +61,39 @@ class Article extends Component {
       title,
       body,
     } = this.props.article;
-    const { history, authModalStateFailure } = this.props;
+
+    const {
+      history,
+      location,
+      authModalStateFailure,
+      fetchDeleteArticles,
+      fetchArticles,
+    } = this.props;
     const tags = tagList.join(", ");
     const name = localStorage.getItem("username");
-    const nameUI = localStorage.getItem("name");
-    const iconColor = favorited ? "#eb2f96" : null;
     return (
       <Wrap>
         <TitleWrap>
           <Title to={`/form-route/articles/${slug}`}>{title}</Title>
-          <StyledStopTwoTone username={username} name={name} />
-          <StyledDeleteTwoTone onClick={this.deleteArticle(slug)} />
-          <EditButton
-            username={username}
-            name={name}
-            type="primary"
-            onClick={setAccessToEdit(
-              nameUI,
-              username,
-              name,
-              authModalStateFailure,
-              history,
-              slug
-            )}
-            props={this.props}
-          >
-            Edit
-          </EditButton>
+          <EditWrap>
+            <StyledDeleteTwoTone
+              username={username}
+              name={name}
+              onClick={showConfirm(slug, fetchDeleteArticles, fetchArticles)}
+            />
+            <EditButton
+              username={username}
+              name={name}
+              type="primary"
+              onClick={setAccess(name, authModalStateFailure, history, slug)}
+              props={this.props}
+            >
+              Edit
+            </EditButton>
+          </EditWrap>
         </TitleWrap>
-        <Description>{description}</Description>
-        <Paragraph>{body}</Paragraph>
+        <Description location={location}>{description}</Description>
+        <Paragraph location={location}>{body}</Paragraph>
         <Info>
           <Author>
             <CopyrightIcon />
@@ -93,11 +108,11 @@ class Article extends Component {
             {tags}
           </Tags>
           <Likes>
-            <HeartIcon twoToneColor="rgba(12,57,114,0.85)" /> {favoritesCount}{" "}
-            <LikeIcon
-              twoToneColor={iconColor}
+            <HeartIcon
               onClick={this.setFavouriteArticle}
-            />
+              twoToneColor={favorited ? "#eb2f96" : ""}
+            />{" "}
+            {favoritesCount}
           </Likes>
         </Info>
       </Wrap>
@@ -105,7 +120,10 @@ class Article extends Component {
   }
 }
 
-const ConnectedAuthorization = connect(null, actionCreators)(Article);
+const ConnectedAuthorization = connect(
+  mapStateToProps,
+  actionCreators
+)(Article);
 
 export default withRouter(ConnectedAuthorization);
 
@@ -118,26 +136,33 @@ const Wrap = styled.article`
 `;
 
 const TitleWrap = styled.div`
-  position: relative;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 700px;
   border: 1px solid cornflowerblue;
   background: rgba(88, 154, 255, 0.45);
 `;
 
+const EditWrap = styled.div`
+  display: flex;
+  padding-right: 20px;
+  justify-content: space-between;
+  width: 180px;
+`;
+
 const Title = styled(Link)`
   color: rgba(5, 12, 22, 0.7);
   font-weight: 600;
-  width: 650px;
+  width: 530px;
   padding: 5px 20px;
   margin: 0;
   word-wrap: break-word;
 `;
 
-const Description = styled(Link)`
-  display: ${() => {
-    return window.location.pathname === "/form-route/" ? "none" : "block";
+const Description = styled.div`
+  display: ${({ location }) => {
+    return location.pathname === "/form-route/" ? "none" : "block";
   }};
   color: rgba(5, 12, 22, 0.5);
   width: 650px;
@@ -147,8 +172,8 @@ const Description = styled(Link)`
 `;
 
 const Paragraph = styled.p`
-  display: ${() => {
-    return window.location.pathname === "/form-route/" ? "none" : "block";
+  display: ${({ location }) => {
+    return location.pathname === "/form-route/" ? "none" : "block";
   }};
   width: 700px;
   padding: 20px 20px;
@@ -171,23 +196,27 @@ const CopyrightIcon = styled(CopyrightCircleTwoTone)`
 `;
 
 const Likes = styled.span`
-  width: 70px;
+  width: 40px;
   height: 30px;
 `;
 
 const HeartIcon = styled(HeartTwoTone)`
   font-size: 18px;
-`;
-
-const LikeIcon = styled(LikeTwoTone)`
-  font-size: 18px;
-  width: 26px;
-  height: 26px;
-  margin-left: 5px;
 
   &:hover {
-    font-size: 20px;
-    cursor: pointer;
+    animation: transform 0.3s ease;
+  }
+
+  @keyframes transform {
+    from {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    to {
+      transform: scale(1);
+    }
   }
 `;
 
@@ -220,7 +249,7 @@ const Tags = styled.span`
 `;
 
 const StyledDeleteTwoTone = styled(DeleteTwoTone)`
-  display: flex;
+  display: ${({ name, username }) => (name === username ? "flex" : "none")};
   align-items: center;
   justify-content: center;
   height: 30px;
@@ -228,18 +257,8 @@ const StyledDeleteTwoTone = styled(DeleteTwoTone)`
   font-size: 20px;
 `;
 
-const StyledStopTwoTone = styled(StopTwoTone)`
-  position: absolute;
-  display: ${({ name, username }) => (name === username ? "none" : "block")};
-  height: 30px;
-  width: 50px;
-  font-size: 28px;
-  right: 92px;
-  opacity: 0.4;
-  top: calc(50% - 14px);
-`;
-
 const EditButton = styled(Button)`
+  display: ${({ name, username }) => (name === username ? "block" : "none")};
   width: 100px;
   height: 30px;
   margin-right: 5px;

@@ -9,7 +9,7 @@ export const convertDate = (date) => {
 };
 
 export const message = (result) => {
-  if (result === 401) {
+  if (result === "authError") {
     return <div>You need to log in</div>;
   }
   return <div>&nbsp;</div>;

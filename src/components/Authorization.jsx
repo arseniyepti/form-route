@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Input, Form } from "antd";
 import { Field, Formik } from "formik";
 import React from "react";
 import { connect } from "react-redux";
@@ -8,11 +8,12 @@ import * as actions from "../actions/actions";
 import { validationSchemaAuthForm } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { authorizationState } = state;
-  const { emailOrPassword } = state.fetchAuthorization.errors;
+  const { authorization } = state;
+  const { errors = "" } = state.authorization;
+  const { emailOrPassword = "" } = errors;
   return {
     emailOrPassword,
-    authorizationState,
+    authorization,
   };
 };
 
@@ -23,12 +24,7 @@ const actionCreators = {
 
 class Authorization extends React.Component {
   render() {
-    const {
-      authorizationState,
-      history,
-      emailOrPassword,
-      fetchAuthorization,
-    } = this.props;
+    const { history, emailOrPassword, fetchAuthorization } = this.props;
     return (
       <Formik
         initialValues={{
@@ -38,8 +34,8 @@ class Authorization extends React.Component {
         validationSchema={validationSchemaAuthForm}
         onSubmit={async ({ email, password }, { resetForm }) => {
           await fetchAuthorization({ email, password });
-          const { authorizationState } = this.props;
-          if (authorizationState === "finished") {
+          const { authorization } = this.props;
+          if (authorization === "finished") {
             resetForm();
             history.push("/form-route/");
           }
@@ -52,51 +48,69 @@ class Authorization extends React.Component {
           handleChange,
           setFieldTouched,
           handleSubmit,
+          isSubmitting,
         }) => (
           <Section>
             <StyledForm onSubmit={handleSubmit}>
               <Label>
                 Email<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("email");
-                    handleChange(event);
-                  }}
-                  value={values.email}
-                  name="email"
-                  id="email"
-                  type="email"
-                  component={StyledInput}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.email && errors.email ? "error" : "validate"
+                  }
+                  help={touched.email && errors.email ? errors.email : null}
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("email");
+                      handleChange(event);
+                    }}
+                    value={values.email}
+                    name="email"
+                    id="email"
+                    type="email"
+                    component={StyledInput}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.email && errors.email) || <div>&nbsp;</div>}
               <Label>
                 Password<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("password");
-                    handleChange(event);
-                  }}
-                  value={values.password}
-                  name="password"
-                  visibilityToggle
-                  id="password"
-                  type="password"
-                  component={StyledInputPassword}
-                />
+                <Form.Item
+                  validateStatus={
+                    touched.password && errors.password ? "error" : "validate"
+                  }
+                  help={
+                    touched.password && errors.password ? errors.password : null
+                  }
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("password");
+                      handleChange(event);
+                    }}
+                    value={values.password}
+                    name="password"
+                    visibilityToggle
+                    id="password"
+                    type="password"
+                    component={StyledInputPassword}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.password && errors.password) || <div>&nbsp;</div>}
               <StyledButton
                 type="primary"
                 onClick={handleSubmit}
-                loading={authorizationState === "request"}
+                loading={isSubmitting}
               >
                 Sign in
               </StyledButton>
-              {authorizationState === "failed" ? (
-                <div>{`Email or password ${emailOrPassword}`}</div>
+              {emailOrPassword ? (
+                <div
+                  style={{ color: "red" }}
+                >{`Email or password ${emailOrPassword}`}</div>
               ) : null}
               <StyledLink to="/form-route/signup">Sign up</StyledLink>
 
@@ -142,7 +156,7 @@ const StyledInputPassword = styled(Input.Password)`
   align-self: center;
 `;
 
-const StyledForm = styled.form`
+const StyledForm = styled(Form)`
   display: flex;
   height: 220px;
   max-width: 400px;
@@ -160,12 +174,11 @@ const SymSpan = styled.span`
   font-size: 16px;
   color: red;
   margin-right: auto;
-  margin-left: 2px;
 `;
 
 const Label = styled.label`
-  display: flex;
+  display: inline-flex;
   width: 400px;
+  vertical-align: baseline;
   justify-content: space-between;
-  align-items: center;
 `;

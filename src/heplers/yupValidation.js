@@ -1,10 +1,11 @@
 import * as Yup from "yup";
 
 const validationSchemaAuthForm = Yup.object().shape({
-  password: Yup.string().required("Поле не заполнено"),
   email: Yup.string()
-    .required("Поле не заполнено")
-    .typeError("Неверный формат введенных данных"),
+    .typeError("Неверный формат введенных данных")
+    .email("Некорректный email адрес")
+    .required("Поле не заполнено"),
+  password: Yup.string().required("Поле не заполнено"),
 });
 
 const validationSchemaRegForm = Yup.object().shape({
@@ -15,6 +16,7 @@ const validationSchemaRegForm = Yup.object().shape({
     .required("Поле не заполнено"),
   email: Yup.string()
     .required("Поле не заполнено")
+    .email("Некорректный email адрес")
     .typeError("Неверный формат введенных данных"),
 });
 

@@ -32,68 +32,11 @@ const articlesFavouriteFetchingState = handleActions(
   null
 );
 
-const addArticlesFetchingState = handleActions(
+const authorization = handleActions(
   {
-    [actions.fetchAddArticleSuccess]: () => {
-      return "request";
-    },
-    [actions.fetchAddArticleSuccess]: () => {
-      return "finished";
-    },
-    [actions.fetchAddArticleFailure]: (state, { payload }) => {
-      return payload;
-    },
-  },
-  null
-);
-
-const updateArticlesFetchingState = handleActions(
-  {
-    [actions.fetchUpdateArticleRequest]: () => {
-      return "success";
-    },
-    [actions.fetchUpdateArticleSuccess]: () => {
-      return "finished";
-    },
-    [actions.fetchUpdateArticleFailure]: (state, { payload }) => {
-      return payload;
-    },
-  },
-  null
-);
-
-const authorizationState = handleActions(
-  {
-    [actions.fetchAuthorizationRequest]: () => {
-      return "request";
-    },
-    [actions.fetchAuthorizationFailure]: () => {
-      return "failed";
-    },
     [actions.fetchAuthorizationSuccess]: () => {
       return "finished";
     },
-  },
-  null
-);
-
-const registrationState = handleActions(
-  {
-    [actions.fetchRegistrationRequest]: () => {
-      return "request";
-    },
-    [actions.fetchRegistrationFailure]: () => {
-      return "failed";
-    },
-    [actions.fetchRegistrationSuccess]: () => {
-      return "finished";
-    },
-  },
-  null
-);
-
-const fetchAuthorization = handleActions(
-  {
     [actions.fetchAuthorizationFailure]: (
       state,
       { payload: { emailOrPassword } }
@@ -108,14 +51,16 @@ const fetchAuthorization = handleActions(
   },
   {
     errors: {
-      email: null,
-      password: null,
+      emailOrPassword: null,
     },
   }
 );
 
-const fetchRegistration = handleActions(
+const registration = handleActions(
   {
+    [actions.fetchRegistrationSuccess]: () => {
+      return "finished";
+    },
     [actions.fetchRegistrationFailure]: (
       state,
       { payload: { email, password, username } }
@@ -137,6 +82,18 @@ const fetchRegistration = handleActions(
       username: null,
     },
   }
+);
+
+const addEditArticleState = handleActions(
+  {
+    [actions.fetchAddEditArticleSuccess]: () => {
+      return "success";
+    },
+    [actions.fetchAddEditArticleFailure]: () => {
+      return "authError";
+    },
+  },
+  null
 );
 
 const articles = handleActions(
@@ -180,14 +137,11 @@ const articles = handleActions(
 );
 
 export default combineReducers({
-  updateArticlesFetchingState,
+  addEditArticleState,
   articlesFetchingState,
-  authorizationState,
-  addArticlesFetchingState,
   articlesFavouriteFetchingState,
-  fetchAuthorization,
+  authorization,
   authModalState,
-  registrationState,
-  fetchRegistration,
+  registration,
   articles,
 });

@@ -34,12 +34,15 @@ const actionCreators = {
 };
 
 class Article extends Component {
-  setFavouriteArticle = async () => {
+  setFavouriteArticle = (name, authModalStateFailure) => async () => {
     const {
       fetchFavouriteArticle,
       fetchFavouriteArticleSuccess,
       article: { slug, favorited },
     } = this.props;
+    if (!name) {
+      return authModalStateFailure();
+    }
     fetchFavouriteArticleSuccess({ slug });
     await fetchFavouriteArticle(slug, favorited);
     const { articlesFavouriteFetchingState } = this.props;
@@ -109,7 +112,7 @@ class Article extends Component {
           </Tags>
           <Likes>
             <HeartIcon
-              onClick={this.setFavouriteArticle}
+              onClick={this.setFavouriteArticle(name, authModalStateFailure)}
               twoToneColor={favorited ? "#eb2f96" : ""}
             />{" "}
             {favoritesCount}
@@ -203,7 +206,7 @@ const Likes = styled.span`
 const HeartIcon = styled(HeartTwoTone)`
   font-size: 18px;
 
-  &:hover {
+  &:active {
     animation: transform 0.3s ease;
   }
 

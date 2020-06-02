@@ -1,11 +1,9 @@
 import { createAction } from "redux-actions";
 import { axiosInstanceAuth } from "../heplers/axiosInstance.js";
 
-export const fetchAuthorizationRequest = createAction("AUTH_FETCH_REQUEST");
 export const fetchAuthorizationSuccess = createAction("AUTH_FETCH_SUCCESS");
 export const fetchAuthorizationFailure = createAction("AUTH_FETCH_FAILURE");
 
-export const fetchRegistrationRequest = createAction("REG_FETCH_REQUEST");
 export const fetchRegistrationFailure = createAction("REG_FETCH_FAILURE");
 export const fetchRegistrationSuccess = createAction("REG_FETCH_SUCCESS");
 
@@ -19,13 +17,12 @@ export const fetchFavouriteArticleFailure = createAction(
   "FAVOURITE_FETCH_FAILURE"
 );
 
-export const fetchAddArticleSuccess = createAction("ADD_FETCH_SUCCESS");
-export const fetchAddArticleFailure = createAction("ADD_FETCH_FAILURE");
-export const fetchAddArticleRequest = createAction("ADD_FETCH_REQUEST");
-
-export const fetchUpdateArticleSuccess = createAction("UPDATE_FETCH_SUCCESS");
-export const fetchUpdateArticleFailure = createAction("UPDATE_FETCH_FAILURE");
-export const fetchUpdateArticleRequest = createAction("UPDATE_FETCH_REQUEST");
+export const fetchAddEditArticleSuccess = createAction(
+  "ADD_EDIT_FETCH_SUCCESS"
+);
+export const fetchAddEditArticleFailure = createAction(
+  "ADD_EDIT_FETCH_FAILURE"
+);
 
 export const fetchDeleteArticleSuccess = createAction("DELETE_FETCH_SUCCESS");
 export const fetchDeleteArticleFailure = createAction("DELETE_FETCH_FAILURE");
@@ -34,7 +31,6 @@ export const authModalStateSuccess = createAction("AUTH_STATE_SUCCESS");
 export const authModalStateFailure = createAction("AUTH_STATE_FAILURE");
 
 export const fetchAuthorization = ({ email, password }) => async (dispatch) => {
-  dispatch(fetchAuthorizationRequest());
   const url = "/users/login";
   try {
     const response = await axiosInstanceAuth.post(url, {
@@ -57,7 +53,6 @@ export const fetchAuthorization = ({ email, password }) => async (dispatch) => {
 export const fetchRegistration = (username, email, password) => async (
   dispatch
 ) => {
-  dispatch(fetchRegistrationRequest());
   const url = "/users";
   try {
     await axiosInstanceAuth.post(url, {
@@ -70,12 +65,12 @@ export const fetchRegistration = (username, email, password) => async (
     dispatch(fetchRegistrationSuccess());
   } catch (error) {
     const { email, password, username } = error.response.data.errors;
+    console.log(email, password, username);
     dispatch(
       fetchRegistrationFailure({
         email,
         password,
         username,
-        registration: false,
       })
     );
   }
@@ -101,50 +96,31 @@ export const fetchFavouriteArticle = (slug, favorite) => async (dispatch) => {
       : await axiosInstanceAuth.post(url);
   } catch (error) {
     dispatch(fetchFavouriteArticleFailure());
-    dispatch(fetchFavouriteArticleFailure());
   }
 };
 
-export const fetchAddArticles = (
-  { title, description, body },
-  tagList
-) => async (dispatch) => {
-  dispatch(fetchAddArticleRequest());
-  const url = `/articles`;
-  try {
-    await axiosInstanceAuth.post(url, {
-      article: {
-        title,
-        description,
-        body,
-        tagList,
-      },
-    });
-    dispatch(fetchAddArticleSuccess());
-  } catch (error) {
-    dispatch(fetchAddArticleFailure(error.response.status));
-  }
-};
-
-export const fetchUpdateArticles = (
+export const fetchAddEditArticles = (
   { title, description, body },
   tagList,
-  slug
+  action,
+  slug = ""
 ) => async (dispatch) => {
-  dispatch(fetchUpdateArticleRequest());
-  const url = `/articles/${slug}`;
+  const data = {
+    article: {
+      title,
+      description,
+      body,
+      tagList,
+    },
+  };
+  const url = action === "add" ? `/articles` : `/articles/${slug}`;
   try {
-    await axiosInstanceAuth.put(url, {
-      article: {
-        title,
-        description,
-        body,
-        tagList,
-      },
-    });
-    dispatch(fetchUpdateArticleSuccess());
+    action === "add"
+      ? await axiosInstanceAuth.post(url, data)
+      : await axiosInstanceAuth.put(url, data);
+    dispatch(fetchAddEditArticleSuccess());
   } catch (error) {
-    dispatch(fetchUpdateArticleFailure(error.response.status));
+    dispatch(fetchAddEditArticleFailure(error.response.status));
   }
 };
 

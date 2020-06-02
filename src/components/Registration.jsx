@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Button, Form, Input } from "antd";
 import { Field, Formik } from "formik";
 import React from "react";
 import { connect } from "react-redux";
@@ -8,18 +8,18 @@ import * as actions from "../actions/actions";
 import { validationSchemaRegForm } from "../heplers/yupValidation.js";
 
 const mapStateToProps = (state) => {
-  const { registrationState } = state;
-  const { email, password, username } = state.fetchRegistration.errors;
+  const { errors = "" } = state.registration;
+  const { email = "", password = "", username = "" } = errors;
+  const { registration } = state;
   return {
-    registrationState,
     email,
     password,
     username,
+    registration,
   };
 };
 const actionCreators = {
   fetchRegistration: actions.fetchRegistration,
-  fetchRegistrationSuccess: actions.fetchRegistrationSuccess,
 };
 
 class Registration extends React.Component {
@@ -29,7 +29,6 @@ class Registration extends React.Component {
       password,
       username,
       history,
-      registrationState,
       fetchRegistration,
     } = this.props;
     return (
@@ -42,8 +41,8 @@ class Registration extends React.Component {
         validationSchema={validationSchemaRegForm}
         onSubmit={async ({ name, email, password }, { resetForm }) => {
           await fetchRegistration(name, email, password);
-          const { registrationState } = this.props;
-          if (registrationState === "finished") {
+          const { registration } = this.props;
+          if (registration === "finished") {
             resetForm();
             history.push("/form-route/login");
           }
@@ -56,92 +55,129 @@ class Registration extends React.Component {
           handleChange,
           setFieldTouched,
           handleSubmit,
+          isSubmitting,
         }) => (
           <Section>
             <StyledForm onSubmit={handleSubmit}>
               <Label>
                 Name<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("name");
-                    handleChange(event);
-                  }}
-                  value={values.name}
-                  name="name"
-                  id="name"
-                  type="text"
-                  component={StyledInput}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.name && errors.name ? "error" : "validate"
+                  }
+                  help={touched.name && errors.name ? errors.name : null}
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("name");
+                      handleChange(event);
+                    }}
+                    value={values.name}
+                    name="name"
+                    id="name"
+                    type="text"
+                    component={StyledInput}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.name && errors.name) || null}
               {username ? (
-                <div style={{ marginLeft: "auto" }}>{`Name ${username}`}</div>
+                <div
+                  style={{ marginLeft: "auto", color: "red" }}
+                >{`Name ${username}`}</div>
               ) : null}
               <Label>
                 Email<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("email");
-                    handleChange(event);
-                  }}
-                  value={values.email}
-                  name="email"
-                  id="email"
-                  type="email"
-                  component={StyledInput}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.email && errors.email ? "error" : "validate"
+                  }
+                  help={touched.email && errors.email ? errors.email : null}
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("email");
+                      handleChange(event);
+                    }}
+                    value={values.email}
+                    name="email"
+                    id="email"
+                    type="email"
+                    component={StyledInput}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.email && errors.email) || null}
               {email ? (
-                <div style={{ marginLeft: "auto" }}>{`Email ${email}`}</div>
+                <div
+                  style={{ marginLeft: "auto", color: "red" }}
+                >{`Email ${email}`}</div>
               ) : null}
               <Label>
                 Password<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("password");
-                    handleChange(event);
-                  }}
-                  value={values.password}
-                  name="password"
-                  visibilityToggle
-                  id="password"
-                  type="password"
-                  component={StyledInputPassword}
-                />
+                <Form.Item
+                  validateStatus={
+                    touched.password && errors.password ? "error" : "validate"
+                  }
+                  help={
+                    touched.password && errors.password ? errors.password : null
+                  }
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("password");
+                      handleChange(event);
+                    }}
+                    value={values.password}
+                    name="password"
+                    visibilityToggle
+                    id="password"
+                    type="password"
+                    component={StyledInputPassword}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.password && errors.password) || null}
               {password ? (
                 <div
-                  style={{ marginLeft: "auto" }}
+                  style={{ marginLeft: "auto", color: "red" }}
                 >{`Password ${password}`}</div>
               ) : null}
               <Label>
                 Repeat Password<SymSpan>*</SymSpan>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    setFieldTouched("repeatPassword");
-                    handleChange(event);
-                  }}
-                  value={values.repeatPassword}
-                  name="repeatPassword"
-                  visibilityToggle
-                  id="repeatPassword"
-                  type="password"
-                  component={StyledInputPassword}
-                />
+                <Form.Item
+                  validateStatus={
+                    touched.repeatPassword && errors.repeatPassword
+                      ? "error"
+                      : "validate"
+                  }
+                  help={
+                    touched.repeatPassword && errors.repeatPassword
+                      ? errors.repeatPassword
+                      : null
+                  }
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("repeatPassword");
+                      handleChange(event);
+                    }}
+                    value={values.repeatPassword}
+                    name="repeatPassword"
+                    visibilityToggle
+                    id="repeatPassword"
+                    type="password"
+                    component={StyledInputPassword}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.repeatPassword && errors.repeatPassword) || (
-                <div>&nbsp;</div>
-              )}
               <StyledButton
                 type="primary"
                 onClick={handleSubmit}
-                loading={registrationState === "finished"}
+                loading={isSubmitting}
               >
                 Sign up
               </StyledButton>
@@ -185,7 +221,7 @@ const StyledInputPassword = styled(Input.Password)`
   align-self: center;
 `;
 
-const StyledForm = styled.form`
+const StyledForm = styled(Form)`
   display: flex;
   height: 300px;
   max-width: 550px;
@@ -196,6 +232,7 @@ const StyledForm = styled.form`
 
 const StyledLink = styled(Link)`
   text-decoration: none;
+  margin-top: 20px;
 `;
 
 const SymSpan = styled.span`
@@ -209,5 +246,4 @@ const Label = styled.label`
   display: flex;
   width: 450px;
   justify-content: space-between;
-  align-items: center;
 `;

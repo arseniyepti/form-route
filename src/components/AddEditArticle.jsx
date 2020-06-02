@@ -10,19 +10,14 @@ import * as actions from "../actions/actions";
 import { validationSchemaAddArticle } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { addArticlesFetchingState, updateArticlesFetchingState } = state;
+  const { addEditArticleState } = state;
   return {
-    addArticlesFetchingState,
-    updateArticlesFetchingState,
+    addEditArticleState,
   };
 };
 
 const actionCreators = {
-  fetchAddArticles: actions.fetchAddArticles,
-  fetchUpdateArticles: actions.fetchUpdateArticles,
-  fetchAddArticleFailure: actions.fetchAddArticleFailure,
-  fetchAddArticleRequest: actions.fetchAddArticleRequest,
-  fetchUpdateArticleRequest: actions.fetchUpdateArticleRequest,
+  fetchAddEditArticles: actions.fetchAddEditArticles,
   fetchArticles: actions.fetchArticles,
 };
 
@@ -35,14 +30,10 @@ class AddEditArticle extends React.Component {
 
   render() {
     const {
-      fetchAddArticles,
-      addArticlesFetchingState,
-      updateArticlesFetchingState,
-      fetchUpdateArticleRequest,
+      addEditArticleState,
+      fetchAddEditArticles,
       fetchArticles,
-      fetchAddArticleRequest,
       history,
-      fetchUpdateArticles,
     } = this.props;
     const { article = "" } = this.props;
     const {
@@ -70,23 +61,15 @@ class AddEditArticle extends React.Component {
               return tag;
             })
             .filter((tag) => tag !== "");
-          if (article) {
-            fetchUpdateArticleRequest();
-            await fetchUpdateArticles(values, tags, slug);
-          } else {
-            fetchAddArticleRequest();
-            await fetchAddArticles(values, tags);
-          }
-          await fetchArticles();
-          const {
-            addArticlesFetchingState,
-            updateArticlesFetchingState,
-          } = this.props;
-          if (addArticlesFetchingState === "finished") {
+          const action = article ? "edit" : "add";
+          await fetchAddEditArticles(values, tags, action, slug);
+          const { addEditArticleState } = this.props;
+          fetchArticles();
+          if (!article && addEditArticleState === "success") {
             history.push("/form-route/");
           }
-          if (article && updateArticlesFetchingState === "finished") {
-            history.goBack();
+          if (article && addEditArticleState === "success") {
+            history.go(-1);
           }
         }}
       >
@@ -97,57 +80,89 @@ class AddEditArticle extends React.Component {
           handleChange,
           setFieldValue,
           handleSubmit,
+          isSubmitting,
+          setFieldTouched,
         }) => (
           <Section>
             <StyledForm onSubmit={handleSubmit}>
               <Label>
                 Title<Span>*</Span>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    handleChange(event);
-                  }}
-                  value={values.title}
-                  name="title"
-                  id="title"
-                  type="text"
-                  component={StyledInput}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.title && errors.title ? "error" : "validate"
+                  }
+                  help={touched.title && errors.title ? errors.title : null}
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("title");
+                      handleChange(event);
+                    }}
+                    value={values.title}
+                    name="title"
+                    id="title"
+                    type="text"
+                    component={StyledInput}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.title && errors.title) || <div>&nbsp;</div>}
               <Label>
                 Description<Span>*</Span>
-                <Field
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    handleChange(event);
-                  }}
-                  value={values.description}
-                  name="description"
-                  id="description"
-                  type="text"
-                  component={StyledInput}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.description && errors.description
+                      ? "error"
+                      : "validate"
+                  }
+                  help={
+                    touched.description && errors.description
+                      ? errors.description
+                      : null
+                  }
+                >
+                  <Field
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("description");
+                      handleChange(event);
+                    }}
+                    value={values.description}
+                    name="description"
+                    id="description"
+                    type="text"
+                    component={StyledInput}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.description && errors.description) || <div>&nbsp;</div>}
               <Label>
                 Text<Span>*</Span>
-                <Field
-                  autoSize={{ minRows: 2, maxRows: 10 }}
-                  onPressEnter={handleSubmit}
-                  onChange={(event) => {
-                    handleChange(event);
-                  }}
-                  value={values.body}
-                  name="body"
-                  id="body"
-                  type="text"
-                  cols="20"
-                  rows="10"
-                  component={StyledInputBody}
-                />
+                <Form.Item
+                  hasFeedback
+                  validateStatus={
+                    touched.body && errors.body ? "error" : "validate"
+                  }
+                  help={touched.body && errors.body ? errors.body : null}
+                >
+                  <Field
+                    autoSize={{ minRows: 2, maxRows: 10 }}
+                    onPressEnter={handleSubmit}
+                    onChange={(event) => {
+                      setFieldTouched("body");
+                      handleChange(event);
+                    }}
+                    value={values.body}
+                    name="body"
+                    id="body"
+                    type="text"
+                    cols="20"
+                    rows="10"
+                    component={StyledInputBody}
+                  />
+                </Form.Item>
               </Label>
-              {(touched.body && errors.body) || <div>&nbsp;</div>}
               <Label>
                 Tags
                 <TagsWrap>
@@ -195,17 +210,13 @@ class AddEditArticle extends React.Component {
                   />
                 </TagsWrap>
               </Label>
-              {message(addArticlesFetchingState)}
+              {message(addEditArticleState)}
               <StyledButton
-                loading={
-                  article
-                    ? addArticlesFetchingState === "request"
-                    : updateArticlesFetchingState === "request"
-                }
+                loading={isSubmitting}
                 type="primary"
                 onClick={handleSubmit}
               >
-                {this.props.article ? "Edit" : "Add"}
+                {article ? "Edit" : "Add"}
               </StyledButton>
               <StyledLink to="/form-route/">Main</StyledLink>
             </StyledForm>

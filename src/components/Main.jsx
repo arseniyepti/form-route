@@ -61,7 +61,7 @@ class Main extends Component {
           onChange={this.onChange}
           showTotal={(total, range) => `${range[1]} of ${total} items`}
         />
-        <AuthMessage>
+        <AuthMessage name={name}>
           For editing, deleting and adding articles you need{" "}
           <MessageLink to="/form-route/login">{" Log in"}</MessageLink>
         </AuthMessage>
@@ -131,7 +131,7 @@ const Name = styled.span`
 `;
 
 const AuthMessage = styled.div`
-  display: flex;
+  display: ${({ name }) => (name ? "none" : "flex")};
   justify-content: center;
   align-items: center;
   height: 40px;

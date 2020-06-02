@@ -47,7 +47,13 @@ class App extends React.Component {
           onOk={handleOk(history, authModalStateSuccess)}
           onCancel={onCancel(authModalStateSuccess)}
         >
-          You need <Link to="/form-route/login">Log in</Link>
+          You need{" "}
+          <Link
+            onClick={onCancel(authModalStateSuccess)}
+            to="/form-route/login"
+          >
+            Log in
+          </Link>
         </Modal>
         <Switch>
           <Route exact path="/form-route/" component={Main} />

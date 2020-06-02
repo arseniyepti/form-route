@@ -122,9 +122,6 @@ export const fetchAddArticles = (
     });
     dispatch(fetchAddArticleSuccess());
   } catch (error) {
-    // if (error.response.status === 401) {
-    // 	dispatch(authModalStateFailure());
-    // }
     dispatch(fetchAddArticleFailure(error.response.status));
   }
 };
@@ -147,9 +144,6 @@ export const fetchUpdateArticles = (
     });
     dispatch(fetchUpdateArticleSuccess());
   } catch (error) {
-    // if (error.response.status === 401) {
-    // 	dispatch(authModalStateFailure());
-    // }
     dispatch(fetchUpdateArticleFailure(error.response.status));
   }
 };
@@ -160,9 +154,6 @@ export const fetchDeleteArticles = (slug) => async (dispatch) => {
     await axiosInstanceAuth.delete(url);
     dispatch(fetchDeleteArticleSuccess({ slug }));
   } catch (error) {
-    // if (error.response.status === 401) {
-    // 	dispatch(authModalStateFailure());
-    // }
     dispatch(fetchDeleteArticleFailure());
   }
 };

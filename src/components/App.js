@@ -27,11 +27,6 @@ const actionCreators = {
 };
 
 class App extends React.Component {
-  componentDidMount() {
-    const { fetchArticles } = this.props;
-    fetchArticles();
-  }
-
   render() {
     const {
       authModalStateSuccess,

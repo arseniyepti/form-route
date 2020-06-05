@@ -31,6 +31,7 @@ axiosInstanceAuth.interceptors.response.use(
   (err) => {
     if (err.response.status === 401) {
       localStorage.setItem("token", "");
+      localStorage.setItem("username", "");
       window.location.reload();
     }
     return Promise.reject(err);

@@ -18,13 +18,6 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import styled from "styled-components";
 
-const mapStateToProps = (state) => {
-  const { articlesFavouriteFetchingState } = state;
-  return {
-    articlesFavouriteFetchingState,
-  };
-};
-
 const actionCreators = {
   fetchFavouriteArticle: actions.fetchFavouriteArticle,
   fetchDeleteArticles: actions.fetchDeleteArticles,
@@ -44,9 +37,8 @@ class Article extends Component {
       return authModalStateFailure();
     }
     fetchFavouriteArticleSuccess({ slug });
-    await fetchFavouriteArticle(slug, favorited);
-    const { articlesFavouriteFetchingState } = this.props;
-    if (articlesFavouriteFetchingState === "failed") {
+    const state = await fetchFavouriteArticle(slug, favorited);
+    if (!state) {
       openNotification();
       fetchFavouriteArticleSuccess({ slug });
     }
@@ -64,7 +56,6 @@ class Article extends Component {
       title,
       body,
     } = this.props.article;
-
     const {
       history,
       location,
@@ -75,58 +66,60 @@ class Article extends Component {
     const tags = tagList.join(", ");
     const name = localStorage.getItem("username");
     return (
-      <Wrap>
-        <TitleWrap>
-          <Title to={`/form-route/articles/${slug}`}>{title}</Title>
-          <EditWrap>
-            <StyledDeleteTwoTone
-              username={username}
-              name={name}
-              onClick={showConfirm(slug, fetchDeleteArticles, fetchArticles)}
-            />
-            <EditButton
-              username={username}
-              name={name}
-              type="primary"
-              onClick={setAccess(name, authModalStateFailure, history, slug)}
-              props={this.props}
-            >
-              Edit
-            </EditButton>
-          </EditWrap>
-        </TitleWrap>
-        <Description location={location}>{description}</Description>
-        <Paragraph location={location}>{body}</Paragraph>
-        <Info>
-          <Author>
-            <CopyrightIcon />
-            {username}
-          </Author>
-          <Date>
-            <CalendarIcon />
-            {convertDate(createdAt)}
-          </Date>
-          <Tags>
-            <TagsIcon />
-            {tags}
-          </Tags>
-          <Likes>
-            <HeartIcon
-              onClick={this.setFavouriteArticle(name, authModalStateFailure)}
-              twoToneColor={favorited ? "#eb2f96" : ""}
-            />{" "}
-            {favoritesCount}
-          </Likes>
-        </Info>
-      </Wrap>
+      <>
+        <StyledLink location={location} to="/form-route/">
+          Return to Main
+        </StyledLink>
+        <Wrap>
+          <TitleWrap>
+            <Title to={`/form-route/articles/${slug}`}>{title}</Title>
+            <EditWrap>
+              <StyledDeleteTwoTone
+                username={username}
+                name={name}
+                onClick={showConfirm(slug, fetchDeleteArticles, fetchArticles)}
+              />
+              <EditButton
+                username={username}
+                name={name}
+                type="primary"
+                onClick={setAccess(name, authModalStateFailure, history, slug)}
+                props={this.props}
+              >
+                Edit
+              </EditButton>
+            </EditWrap>
+          </TitleWrap>
+          <Description location={location}>{description}</Description>
+          <Paragraph location={location}>{body}</Paragraph>
+          <Info>
+            <Author>
+              <CopyrightIcon />
+              {username}
+            </Author>
+            <Date>
+              <CalendarIcon />
+              {convertDate(createdAt)}
+            </Date>
+            <Tags>
+              <TagsIcon />
+              {tags}
+            </Tags>
+            <Likes>
+              <HeartIcon
+                onClick={this.setFavouriteArticle(name, authModalStateFailure)}
+                twoToneColor={favorited ? "#eb2f96" : ""}
+              />{" "}
+              {favoritesCount}
+            </Likes>
+          </Info>
+        </Wrap>
+      </>
     );
   }
 }
 
-const ConnectedAuthorization = connect(
-  mapStateToProps,
-  actionCreators
-)(Article);
+const ConnectedAuthorization = connect(null, actionCreators)(Article);
 
 export default withRouter(ConnectedAuthorization);
 
@@ -161,6 +154,14 @@ const Title = styled(Link)`
   padding: 5px 20px;
   margin: 0;
   word-wrap: break-word;
+`;
+
+const StyledLink = styled(Link)`
+  display: ${({ location }) =>
+    location.pathname === "/form-route/" ? "none" : "flex"};
+  width: 700px;
+  justify-content: center;
+  padding: 20px;
 `;
 
 const Description = styled.div`

@@ -8,14 +8,12 @@ import * as actions from "../actions/actions";
 import { validationSchemaRegForm } from "../heplers/yupValidation.js";
 
 const mapStateToProps = (state) => {
-  const { errors = "" } = state.registration;
-  const { email = "", password = "", username = "" } = errors;
-  const { registration } = state;
+  const { regErrors = "" } = state.error;
+  const { email = "", password = "", username = "" } = regErrors;
   return {
     email,
     password,
     username,
-    registration,
   };
 };
 const actionCreators = {
@@ -40,9 +38,8 @@ class Registration extends React.Component {
         }}
         validationSchema={validationSchemaRegForm}
         onSubmit={async ({ name, email, password }, { resetForm }) => {
-          await fetchRegistration(name, email, password);
-          const { registration } = this.props;
-          if (registration === "finished") {
+          const state = await fetchRegistration(name, email, password);
+          if (state) {
             resetForm();
             history.push("/form-route/login");
           }
@@ -53,7 +50,6 @@ class Registration extends React.Component {
           errors,
           touched,
           handleChange,
-          setFieldTouched,
           handleSubmit,
           isSubmitting,
         }) => (
@@ -66,12 +62,18 @@ class Registration extends React.Component {
                   validateStatus={
                     touched.name && errors.name ? "error" : "validate"
                   }
-                  help={touched.name && errors.name ? errors.name : null}
+                  help={
+                    (touched.name && errors.name ? errors.name : null) ||
+                    (username ? (
+                      <div
+                        style={{ marginLeft: "auto", color: "red" }}
+                      >{`Name ${username}`}</div>
+                    ) : null)
+                  }
                 >
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("name");
                       handleChange(event);
                     }}
                     value={values.name}
@@ -82,11 +84,6 @@ class Registration extends React.Component {
                   />
                 </Form.Item>
               </Label>
-              {username ? (
-                <div
-                  style={{ marginLeft: "auto", color: "red" }}
-                >{`Name ${username}`}</div>
-              ) : null}
               <Label>
                 Email<SymSpan>*</SymSpan>
                 <Form.Item
@@ -94,12 +91,18 @@ class Registration extends React.Component {
                   validateStatus={
                     touched.email && errors.email ? "error" : "validate"
                   }
-                  help={touched.email && errors.email ? errors.email : null}
+                  help={
+                    (touched.email && errors.email ? errors.email : null) ||
+                    (email ? (
+                      <div
+                        style={{ marginLeft: "auto", color: "red" }}
+                      >{`Email ${email}`}</div>
+                    ) : null)
+                  }
                 >
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("email");
                       handleChange(event);
                     }}
                     value={values.email}
@@ -110,11 +113,6 @@ class Registration extends React.Component {
                   />
                 </Form.Item>
               </Label>
-              {email ? (
-                <div
-                  style={{ marginLeft: "auto", color: "red" }}
-                >{`Email ${email}`}</div>
-              ) : null}
               <Label>
                 Password<SymSpan>*</SymSpan>
                 <Form.Item
@@ -122,13 +120,19 @@ class Registration extends React.Component {
                     touched.password && errors.password ? "error" : "validate"
                   }
                   help={
-                    touched.password && errors.password ? errors.password : null
+                    (touched.password && errors.password
+                      ? errors.password
+                      : null) ||
+                    (password ? (
+                      <div
+                        style={{ marginLeft: "auto", color: "red" }}
+                      >{`Password ${password}`}</div>
+                    ) : null)
                   }
                 >
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("password");
                       handleChange(event);
                     }}
                     value={values.password}
@@ -140,11 +144,6 @@ class Registration extends React.Component {
                   />
                 </Form.Item>
               </Label>
-              {password ? (
-                <div
-                  style={{ marginLeft: "auto", color: "red" }}
-                >{`Password ${password}`}</div>
-              ) : null}
               <Label>
                 Repeat Password<SymSpan>*</SymSpan>
                 <Form.Item
@@ -162,7 +161,6 @@ class Registration extends React.Component {
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("repeatPassword");
                       handleChange(event);
                     }}
                     value={values.repeatPassword}

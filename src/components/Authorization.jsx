@@ -8,18 +8,15 @@ import * as actions from "../actions/actions";
 import { validationSchemaAuthForm } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { authorization } = state;
-  const { errors = "" } = state.authorization;
-  const { emailOrPassword = "" } = errors;
+  const { authErrors = "" } = state.error;
+  const { emailOrPassword = "" } = authErrors;
   return {
     emailOrPassword,
-    authorization,
   };
 };
 
 const actionCreators = {
   fetchAuthorization: actions.fetchAuthorization,
-  fetchAuthorizationSuccess: actions.fetchAuthorizationSuccess,
 };
 
 class Authorization extends React.Component {
@@ -33,9 +30,8 @@ class Authorization extends React.Component {
         }}
         validationSchema={validationSchemaAuthForm}
         onSubmit={async ({ email, password }, { resetForm }) => {
-          await fetchAuthorization({ email, password });
-          const { authorization } = this.props;
-          if (authorization === "finished") {
+          const state = await fetchAuthorization({ email, password });
+          if (state) {
             resetForm();
             history.push("/form-route/");
           }
@@ -46,7 +42,6 @@ class Authorization extends React.Component {
           errors,
           touched,
           handleChange,
-          setFieldTouched,
           handleSubmit,
           isSubmitting,
         }) => (
@@ -64,7 +59,6 @@ class Authorization extends React.Component {
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("email");
                       handleChange(event);
                     }}
                     value={values.email}
@@ -88,7 +82,6 @@ class Authorization extends React.Component {
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("password");
                       handleChange(event);
                     }}
                     value={values.password}

@@ -2,15 +2,6 @@ import { combineReducers } from "redux";
 import { handleActions } from "redux-actions";
 import * as actions from "../actions/actions";
 
-const articlesFetchingState = handleActions(
-  {
-    [actions.fetchArticlesSuccess]: () => {
-      return "success";
-    },
-  },
-  null
-);
-
 const authModalState = handleActions(
   {
     [actions.authModalStateSuccess]: () => {
@@ -23,43 +14,18 @@ const authModalState = handleActions(
   null
 );
 
-const articlesFavouriteFetchingState = handleActions(
+const error = handleActions(
   {
-    [actions.fetchFavouriteArticleFailure]: () => {
-      return "failed";
-    },
-  },
-  null
-);
-
-const authorization = handleActions(
-  {
-    [actions.fetchAuthorizationSuccess]: () => {
-      return "finished";
-    },
     [actions.fetchAuthorizationFailure]: (
       state,
       { payload: { emailOrPassword } }
     ) => {
       return {
         ...state,
-        errors: {
+        authErrors: {
           emailOrPassword,
         },
       };
-    },
-  },
-  {
-    errors: {
-      emailOrPassword: null,
-    },
-  }
-);
-
-const registration = handleActions(
-  {
-    [actions.fetchRegistrationSuccess]: () => {
-      return "finished";
     },
     [actions.fetchRegistrationFailure]: (
       state,
@@ -67,33 +33,27 @@ const registration = handleActions(
     ) => {
       return {
         ...state,
-        errors: {
+        regErrors: {
           email,
           password,
           username,
         },
       };
     },
+    [actions.fetchAddEditArticleFailure]: () => {
+      return "authError";
+    },
   },
   {
-    errors: {
+    authErrors: {
+      emailOrPassword: null,
+    },
+    regErrors: {
       email: null,
       password: null,
       username: null,
     },
   }
-);
-
-const addEditArticleState = handleActions(
-  {
-    [actions.fetchAddEditArticleSuccess]: () => {
-      return "success";
-    },
-    [actions.fetchAddEditArticleFailure]: () => {
-      return "authError";
-    },
-  },
-  null
 );
 
 const articles = handleActions(
@@ -137,11 +97,7 @@ const articles = handleActions(
 );
 
 export default combineReducers({
-  addEditArticleState,
-  articlesFetchingState,
-  articlesFavouriteFetchingState,
-  authorization,
+  error,
   authModalState,
-  registration,
   articles,
 });

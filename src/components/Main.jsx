@@ -10,22 +10,24 @@ import { Pagination, Button, Spin } from "antd";
 const mapStateToProps = (state) => {
   const {
     articles: { articles, articlesCount },
-    articlesFetchingState,
   } = state;
   return {
     articles,
     articlesCount,
-    articlesFetchingState,
   };
 };
 
 const actionCreators = {
-  fetchAuthorizationSuccess: actions.fetchAuthorizationSuccess,
   fetchArticles: actions.fetchArticles,
   authModalStateFailure: actions.authModalStateFailure,
 };
 
 class Main extends Component {
+  componentDidMount() {
+    const { fetchArticles } = this.props;
+    fetchArticles();
+  }
+
   handleLogOut = () => {
     window.localStorage.removeItem("token");
     window.localStorage.removeItem("username");
@@ -48,7 +50,7 @@ class Main extends Component {
       articlesCount,
       authModalStateFailure,
       history,
-      articlesFetchingState,
+      articles,
     } = this.props;
     const name = localStorage.getItem("username");
     return (
@@ -70,11 +72,7 @@ class Main extends Component {
           <StyledLink onClick={this.handleLogOut} to="/form-route/login">
             {changeLog()}
           </StyledLink>
-          <StyledSpin
-            articlesFetchingState={articlesFetchingState}
-            size="large"
-            tip="Loading..."
-          />
+          <StyledSpin articles={articles} size="large" tip="Loading..." />
           {this.renderArticles()}
         </Wrapper>
         <AddButton
@@ -119,8 +117,7 @@ const StyledPagination = styled(Pagination)`
 
 const StyledSpin = styled(Spin)`
   margin-top: 150px;
-  display: ${({ articlesFetchingState }) =>
-    articlesFetchingState === "success" ? "none" : "block"};
+  display: ${({ articles }) => (articles.length === 0 ? "block" : "none")};
 `;
 
 const Name = styled.span`

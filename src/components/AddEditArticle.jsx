@@ -10,15 +10,14 @@ import * as actions from "../actions/actions";
 import { validationSchemaAddArticle } from "../heplers/yupValidation";
 
 const mapStateToProps = (state) => {
-  const { addEditArticleState } = state;
+  const { error } = state;
   return {
-    addEditArticleState,
+    error,
   };
 };
 
 const actionCreators = {
   fetchAddEditArticles: actions.fetchAddEditArticles,
-  fetchArticles: actions.fetchArticles,
 };
 
 class AddEditArticle extends React.Component {
@@ -29,12 +28,7 @@ class AddEditArticle extends React.Component {
   };
 
   render() {
-    const {
-      addEditArticleState,
-      fetchAddEditArticles,
-      fetchArticles,
-      history,
-    } = this.props;
+    const { error, fetchAddEditArticles, history } = this.props;
     const { article = "" } = this.props;
     const {
       slug = "",
@@ -62,13 +56,11 @@ class AddEditArticle extends React.Component {
             })
             .filter((tag) => tag !== "");
           const action = article ? "edit" : "add";
-          await fetchAddEditArticles(values, tags, action, slug);
-          const { addEditArticleState } = this.props;
-          fetchArticles();
-          if (!article && addEditArticleState === "success") {
+          const state = await fetchAddEditArticles(values, tags, action, slug);
+          if (!article && state) {
             history.push("/form-route/");
           }
-          if (article && addEditArticleState === "success") {
+          if (article && state) {
             history.go(-1);
           }
         }}
@@ -81,7 +73,6 @@ class AddEditArticle extends React.Component {
           setFieldValue,
           handleSubmit,
           isSubmitting,
-          setFieldTouched,
         }) => (
           <Section>
             <StyledForm onSubmit={handleSubmit}>
@@ -97,7 +88,6 @@ class AddEditArticle extends React.Component {
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("title");
                       handleChange(event);
                     }}
                     value={values.title}
@@ -126,7 +116,6 @@ class AddEditArticle extends React.Component {
                   <Field
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("description");
                       handleChange(event);
                     }}
                     value={values.description}
@@ -150,7 +139,6 @@ class AddEditArticle extends React.Component {
                     autoSize={{ minRows: 2, maxRows: 10 }}
                     onPressEnter={handleSubmit}
                     onChange={(event) => {
-                      setFieldTouched("body");
                       handleChange(event);
                     }}
                     value={values.body}
@@ -210,7 +198,7 @@ class AddEditArticle extends React.Component {
                   />
                 </TagsWrap>
               </Label>
-              {message(addEditArticleState)}
+              {message(error)}
               <StyledButton
                 loading={isSubmitting}
                 type="primary"

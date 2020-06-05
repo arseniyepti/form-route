@@ -1,14 +1,11 @@
 import { createAction } from "redux-actions";
 import { axiosInstanceAuth } from "../heplers/axiosInstance.js";
 
-export const fetchAuthorizationSuccess = createAction("AUTH_FETCH_SUCCESS");
 export const fetchAuthorizationFailure = createAction("AUTH_FETCH_FAILURE");
 
 export const fetchRegistrationFailure = createAction("REG_FETCH_FAILURE");
-export const fetchRegistrationSuccess = createAction("REG_FETCH_SUCCESS");
 
 export const fetchArticlesSuccess = createAction("ARTICLES_FETCH_SUCCESS");
-export const fetchArticlesFailure = createAction("ARTICLES_FETCH_FAILURE");
 
 export const fetchFavouriteArticleSuccess = createAction(
   "FAVOURITE_FETCH_SUCCESS"
@@ -17,15 +14,11 @@ export const fetchFavouriteArticleFailure = createAction(
   "FAVOURITE_FETCH_FAILURE"
 );
 
-export const fetchAddEditArticleSuccess = createAction(
-  "ADD_EDIT_FETCH_SUCCESS"
-);
 export const fetchAddEditArticleFailure = createAction(
   "ADD_EDIT_FETCH_FAILURE"
 );
 
 export const fetchDeleteArticleSuccess = createAction("DELETE_FETCH_SUCCESS");
-export const fetchDeleteArticleFailure = createAction("DELETE_FETCH_FAILURE");
 
 export const authModalStateSuccess = createAction("AUTH_STATE_SUCCESS");
 export const authModalStateFailure = createAction("AUTH_STATE_FAILURE");
@@ -39,7 +32,7 @@ export const fetchAuthorization = ({ email, password }) => async (dispatch) => {
     const { token, username } = response.data.user;
     localStorage.setItem("token", token);
     localStorage.setItem("username", username);
-    dispatch(fetchAuthorizationSuccess());
+    return true;
   } catch (error) {
     const emailOrPassword = error.response.data.errors["email or password"];
     dispatch(
@@ -62,7 +55,7 @@ export const fetchRegistration = (username, email, password) => async (
         password,
       },
     });
-    dispatch(fetchRegistrationSuccess());
+    return true;
   } catch (error) {
     const { email, password, username } = error.response.data.errors;
     console.log(email, password, username);
@@ -83,17 +76,16 @@ export const fetchArticles = (count = 0) => async (dispatch) => {
       data: { articles, articlesCount },
     } = await axiosInstanceAuth.get(url);
     dispatch(fetchArticlesSuccess({ articles, articlesCount }));
-  } catch (error) {
-    dispatch(fetchArticlesFailure());
-  }
+  } catch (error) {}
 };
 
 export const fetchFavouriteArticle = (slug, favorite) => async (dispatch) => {
   const url = `/articles/${slug}/favorite`;
   try {
-    return favorite
+    favorite
       ? await axiosInstanceAuth.delete(url)
       : await axiosInstanceAuth.post(url);
+    return true;
   } catch (error) {
     dispatch(fetchFavouriteArticleFailure());
   }
@@ -104,7 +96,7 @@ export const fetchAddEditArticles = (
   tagList,
   action,
   slug = ""
-) => async (dispatch) => {
+) => async () => {
   const data = {
     article: {
       title,
@@ -118,9 +110,9 @@ export const fetchAddEditArticles = (
     action === "add"
       ? await axiosInstanceAuth.post(url, data)
       : await axiosInstanceAuth.put(url, data);
-    dispatch(fetchAddEditArticleSuccess());
+    return true;
   } catch (error) {
-    dispatch(fetchAddEditArticleFailure(error.response.status));
+    return error.response.status;
   }
 };
 
@@ -129,7 +121,5 @@ export const fetchDeleteArticles = (slug) => async (dispatch) => {
   try {
     await axiosInstanceAuth.delete(url);
     dispatch(fetchDeleteArticleSuccess({ slug }));
-  } catch (error) {
-    dispatch(fetchDeleteArticleFailure());
-  }
+  } catch (error) {}
 };

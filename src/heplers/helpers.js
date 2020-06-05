@@ -8,8 +8,8 @@ export const convertDate = (date) => {
   return formatDistanceToNow(new Date(date), { addSuffix: true });
 };
 
-export const message = (result) => {
-  if (result === "authError") {
+export const message = (error) => {
+  if (error === "authError") {
     return <div>You need to log in</div>;
   }
   return <div>&nbsp;</div>;
